@@ -2,7 +2,7 @@
 Samhitha Poladi (25B1088) and Riddhima Singh (25B1068)
 
 Mini Game Hub is a multi-user game platform that combines Bash scripting and Python (Pygame) to create an interactive gaming experience.
-The system begins with user authentication in Bash, after which two players can select and play different board games through a graphical interface.
+The system begins with user authentication in Bash, after which two players can select and play different board games through a graphical interface. The games include tic-tac-toe, othello, connect 4 and battleship
 Game results are stored and used to generate a leaderboard and basic analytics.
 
 **Features**
@@ -74,39 +74,34 @@ bash main.sh
   * Implement Tic-Tac-Toe logic (including win conditions)
     
 * Riddhima:
-
   * Implement Tic-Tac-Toe GUI and interactions
 
 ### Week 4
 
 * Samhitha:
-
-  * Implement Connect Four logic (gravity, win checking)
-    
-* Riddhima:
-
   * Implement Connect Four GUI and improve visuals
+      
+* Riddhima:
+  * Implement Connect Four logic (gravity, win checking)
 
 ### Week 5
 
 * Samhitha:
-
-  * Implement Othello logic (valid moves, disc flipping, turn handling)
-    
-* Riddhima:
-
   * Implement Battleship logic (grid setup, ship placement, hit/miss detection)
   * Integrate all games into a unified menu system
+* Riddhima:
+  * Implement Othello logic (valid moves, disc flipping, turn handling)
 
 ### Week 6
 
 * Samhitha:
 
   * Implement result recording (winner, loser, date, game)
-  * Assist in testing and debugging
+  
+  * Add basic visualisations using Matplotlib
     
 * Riddhima:
-
+  
+  * Assist in testing and debugging
   * Implement leaderboard display using `leaderboard.sh`
-  * Add basic visualisations using Matplotlib
   * Final cleanup, documentation, and integration
