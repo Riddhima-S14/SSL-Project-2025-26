@@ -19,8 +19,17 @@ WHITE = (255, 255, 255)
 FPS = pygame.time.Clock()
 FPS.tick(60)
 
+def end_message(text, seconds):
+    display.fill((251,72,196)) 
+    change_font = pygame.font.SysFont("Times New Roman", 60,bold=True)
+    message_surface = change_font.render(text, True, (0, 0, 0)) 
+    #pygame.draw.rect(display, (0, 0, 0), (375, 375, , 50))
+    rect = message_surface.get_rect(center=(450, 375))
+    display.blit(message_surface, rect)
+    
+    pygame.display.flip() 
+    time.sleep(seconds)     
 #drawing
-
 def draw_cross(surface, color, center_pos, size):
     x, y = center_pos
     pygame.draw.line(surface, color, (x - size+5, y - size), (x + size-5, y + size),5)
@@ -90,9 +99,12 @@ while game_on:
                     winner=play.win_check()                     
                     if winner!=0:
                         play.winner=play.active
+                        text = f"Player {play.active} Wins!"
+                        end_message(text,2)
                         game_on=False
                     elif not np.any(play.board == 0):
                         #draw
+                        end_message("Its a Draw!",2)
                         game_on=False
                     else:
                         play.switch()
