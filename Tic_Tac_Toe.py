@@ -1,7 +1,6 @@
 from game import games
 import numpy as np
 import pygame
-import time
 from pygame.locals import *
 pygame.init()
 
@@ -29,8 +28,6 @@ def draw_cross(surface, color, center_pos, size):
 
 
 class Tictactoe(games):
-    def win_check(self):
-        pass
     def occ(self,x,y):
         if self.board[x,y] == 0:
             return False
@@ -43,43 +40,59 @@ class Tictactoe(games):
             x = (posn[0]-100)//70
             y = (posn[1]-25)//70
             return((y,x))
-            
+    def win_check(self):
+        rows, cols = self.board.shape
+        length = 5
 
+        for r in range(rows):
+            for c in range(cols-length+1):
+                slice=self.board[r, c:c+length]
+                if np.all(slice==self.active):
+                    return self.active
+        
+        for c in range(cols):
+            for r in range(rows-length+1):
+                slice=self.board[r:r+length, c]
+                if np.all(slice==self.active):
+                    return self.active
+                
+        for r in range(rows-length+1):
+            for c in range(cols-length+1):
+                slice=self.board[r:r+length, c:c+length]
+                if np.all(np.diagonal(slice)==self.active):
+                    return self.active
+        
+        for r in range(rows-length+1):
+            for c in range(rows-length+1):
+                slice=self.board[r:r+length, c:c+length]
+                flipped=np.diagonal(np.fliplr(slice))
+                if np.all(flipped==self.active):
+                    return self.active
+        
+        return 0
+      
+            
 pygame.display.set_caption("Tic Tac Toe")
 
-def end_message(text, seconds):
-    display.fill((251,72,196)) 
-    change_font = pygame.font.SysFont("Times New Roman", 60,bold=True)
-    message_surface = change_font.render(text, True, (0, 0, 0)) 
-    #pygame.draw.rect(display, (0, 0, 0), (375, 375, , 50))
-    rect = message_surface.get_rect(center=(450, 375))
-    display.blit(message_surface, rect)
-    
-    pygame.display.flip() 
-    time.sleep(seconds)     
-            
-
 play = Tictactoe(1,2,board)
+game_on=True
 
-while True:
+while game_on:
     for event in pygame.event.get(): 
         if event.type == QUIT:
             pygame.quit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             position = event.pos
             g_box = play.box(position)
-            if (g_box[0] > 0):
+            if (g_box[0] >= 0):
                 if (play.occ(g_box[0],g_box[1]) == False):
                     play.board[g_box[0],g_box[1]] = play.active
                     winner=play.win_check()                     
                     if winner!=0:
                         play.winner=play.active
-                        text = f"Player {play.active} Wins!"
-                        end_message(text,2)
                         game_on=False
                     elif not np.any(play.board == 0):
                         #draw
-                        end_message("Its a Draw!",2)
                         game_on=False
                     else:
                         play.switch()
@@ -93,7 +106,6 @@ while True:
             if play.board[j,i] == 1:
                 pygame.draw.circle(display, BLUE, (135+70*i,60+70*j), 25)
                 pygame.draw.circle(display, BLACK, (135+70*i,60+70*j), 20)
-
             elif play.board[j,i] == 2:
                 draw_cross(display,RED,(135+70*i,60+70*j),25)
     
