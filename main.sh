@@ -39,7 +39,7 @@ authenticate_user(){
             read -p "User "$username" not found. Would you like to register? (y/n): " answer
             if [[ $answer =~ ^[Yy]$ ]]; then
                 read -sp "Password: " password
-                echo -e "\n"
+                echo -e "">&2
                 hashed_password=$(hash_password "$password")
                 echo -e "$username\t$hashed_password" >> "$users"
                 echo "Registration successful!" >&2
