@@ -11,7 +11,8 @@ board = np.zeros(64).reshape((8,8))
 board[3,3],board[4,4],board[3,4],board[4,3] = 1,1,2,2
 
 #player 1 - 1 - col 1
-#player 2 - -1 - col 2
+#player 2 - 2 - col 2
+
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 boardcol = (0,236,255)
@@ -69,9 +70,8 @@ class othello(games):
     def valid_left(self):
         for i in range(8):
             for j in range(8):
-                if self.board[i, j] == 0:
-                    if self.finding_valid((i, j), check=True):
-                        return True
+                if self.finding_valid((i, j),True):
+                    return True
         return False
     def win_check(self):
         score1 = np.sum(self.board == 1)
@@ -95,7 +95,7 @@ while True:
         elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
             position = event.pos
             box = play.box(position)
-            if ( box[0]!=-1 and not play.occ(box[0],box[1])):
+            if ( box[0]!=-1 ):
                 valid_moves = play.valid_left()
                 if (valid_moves == False):
                     play.switch()
@@ -111,10 +111,20 @@ while True:
                 else:
                     move = play.finding_valid(box)
                     if(move):
-                        play.switch()
-            elif not game_on and event.type == pygame.KEYDOWN:
-                pygame.quit()
-                exit()
+                        if (np.any(play.board == 0) == False):
+                            win = play.win_check()
+                            if win!=0:
+                                play.winner = win
+                                end_time=time.time()
+                                game_on=False
+                            else:
+                                end_time=time.time()
+                                game_on=False
+                        else:
+                            play.switch()
+        elif not game_on and event.type == pygame.KEYDOWN:
+            pygame.quit()
+            exit()
 
     display.fill(BLACK)
     for i in range(1,8):
@@ -127,7 +137,7 @@ while True:
             elif play.board[j,i] == 2:
                 pygame.draw.circle(display, col2, (170+80*i,95+80*j),35)
     
-    if not game_on and time.time()-end_time>1.25:
+    if not game_on and time.time()-end_time>0.75:
         font = pygame.font.SysFont(None, 72)
         if play.winner != 0:
             text = font.render(f"Player {play.winner} Wins!", True, wincol)
