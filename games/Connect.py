@@ -8,8 +8,6 @@ pygame.init()
 # player 1 - turquoise
 # player 2 - pink
 
-display = pygame.display.set_mode((900,750))
-board = np.zeros(49).reshape((7,7))
 
 #colors
 boardcol = (0,236,255)
@@ -43,97 +41,92 @@ class Connect(games):
     def win_check(self):
         rows, cols = self.board.shape
         length = 4
-
-        for r in range(rows):
-            for c in range(cols-length+1):
-                slice=self.board[r, c:c+length]
-                if np.all(slice==self.active):
-                    for i in range(length):
-                        self.board[r,c+i] = -1
-                    return self.active
-        
-        for c in range(cols):
-            for r in range(rows-length+1):
-                slice=self.board[r:r+length, c]
-                if np.all(slice==self.active):
-                    for i in range(length):
-                        self.board[r+i,c] = -1
-                    return self.active
-                
-        for r in range(rows-length+1):
-            for c in range(cols-length+1):
-                slice=self.board[r:r+length, c:c+length]
-                if np.all(np.diagonal(slice)==self.active):
-                    for i in range(length):
-                        self.board[r+i,c+i] = -1
-                    return self.active
-        
-        for r in range(rows-length+1):
-            for c in range(rows-length+1):
-                slice=self.board[r:r+length, c:c+length]
-                flipped=np.diagonal(np.fliplr(slice))
-                if np.all(flipped==self.active):
-                    for i in range(length):
-                        self.board[r+length-1-i,c+i] = -1
-                    return self.active
-        
+        t = self.board == self.active #truth matrix
+        #we use binary logic to check 
+        #for horizontal
+        h = t[:,0:0+length] & t[:,1:1+length] & t[:,2:2+length] & t[:,3:length+3]
+        if np.any(h):
+            posn = np.where(h == 1)
+            self.board[posn[0][0],posn[1][0]:posn[1][0]+length] = -1
+            return self.active
+        #for vertical
+        v = t[0:0+length,:] & t[1:1+length,:] & t[2:2+length,:] & t[3:length+3,:] 
+        if np.any(v):        
+            posn = np.where(v == 1)
+            self.board[posn[0][0]:posn[0][0]+length,posn[1][0]] = -1
+            return self.active
+        #top left to bottom right diagonal
+        d1 = t[0:length,0:length] &   t[1:1+length,1:1+length] & t[2:2+length,2:2+length] & t[3:length+3,3:length+3] 
+        if np.any(d1):
+            posn = np.where(d1 == 1)
+            self.board[(posn[0][0],posn[0][0]+1,posn[0][0]+2,posn[0][0]+3),(posn[1][0],posn[1][0]+1,posn[1][0]+2,posn[1][0]+3)] = -1
+            return self.active
+        #bottom left to top right
+        d2 = t[rows-length:rows,0:0+length] & t[rows-length-1:rows-1,1:1+length] & t[rows-length-2:rows-2,2:2+length] & t[rows-length-3:rows-3,3:length+3]
+        if np.any(d2):
+            posn = np.where(d2 == 1)
+            self.board[(posn[0][0]+3,posn[0][0]+2,posn[0][0]+1,posn[0][0]),(posn[1][0],posn[1][0]+1,posn[1][0]+2,posn[1][0]+3)] = -1
+            return self.active
         return 0
+    def execution(self):
+        display = pygame.display.set_mode((900,750))
+        self.board = np.zeros(49).reshape((7,7))
+        FPS = pygame.time.Clock()
+        FPS.tick(60)
+        end_time=None
+        pygame.display.set_caption("Connect 4")
+        game_on = True
 
-pygame.display.set_caption("Connect 4")
-
-play = Connect(1,2,board)
-game_on = True
-
-while True:
-    for event in pygame.event.get(): 
-        if event.type == QUIT:
-            pygame.quit()
-        elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
-            position = event.pos
-            c = play.column(position)
-            if c >= 0 :
-                row = play.available_row(c)
-                if row >= 0:
-                    play.board[row,c] = play.active
-                    winner=play.win_check()                     
-                    if winner!=0:
-                        play.winner=play.active
-                        end_time=time.time()
-                        game_on=False
-                    elif not np.any(play.board == 0):
-                        #draw
-                        end_time=time.time()
-                        game_on=False
-                    else:
-                        play.switch()
-        elif not game_on and event.type == pygame.KEYDOWN:
-            pygame.quit()
-            exit()
+        while True:
+            for event in pygame.event.get(): 
+                if event.type == QUIT:
+                    pygame.quit()
+                elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
+                    position = event.pos
+                    c = self.column(position)
+                    if c >= 0 :
+                        row = self.available_row(c)
+                        if row >= 0:
+                            self.board[row,c] = self.active
+                            winner=self.win_check()                     
+                            if winner!=0:
+                                self.winner=self.active
+                                end_time=time.time()
+                                game_on=False
+                            elif not np.any(self.board == 0):
+                                #draw
+                                end_time=time.time()
+                                game_on=False
+                            else:
+                                self.switch()
+                elif not game_on and event.type == pygame.KEYDOWN:
+                    pygame.quit()
+                    exit()
     
-    display.fill(BLACK)
-    pygame.draw.rect(display, boardcol, (100,225,700,525))
+            display.fill(BLACK)
+            pygame.draw.rect(display, boardcol, (100,225,700,525))
         
-    for r in range(7):
-        for c in range(7):
-            if play.board[r,c] == 1 :
-                pygame.draw.circle(display, col1 , (150+100*(c),275 + 70*(r)), 30)
-            elif play.board[r,c] == 2:
-                pygame.draw.circle(display, col2 , (150+100*(c),275 + 70*(r)), 30)
-            elif play.board[r,c] == -1:
-                pygame.draw.circle(display, win , (150+100*(c),275 + 70*(r)), 30)
-            elif play.board[r,c] == 0:
-                pygame.draw.circle(display, BLACK , (150+100*(c),275 + 70*(r)), 30)
+            for r in range(7):
+                for c in range(7):
+                    if self.board[r,c] == 1 :
+                        pygame.draw.circle(display, col1 , (150+100*(c),275 + 70*(r)), 30)
+                    elif self.board[r,c] == 2:
+                        pygame.draw.circle(display, col2 , (150+100*(c),275 + 70*(r)), 30)
+                    elif self.board[r,c] == -1:
+                        pygame.draw.circle(display, win , (150+100*(c),275 + 70*(r)), 30)
+                    elif self.board[r,c] == 0:
+                        pygame.draw.circle(display, BLACK , (150+100*(c),275 + 70*(r)), 30)
     
-    if not game_on and time.time()-end_time>1.25:
-        font = pygame.font.SysFont(None, 72)
-        if play.winner != 0:
-            text = font.render(f"Player {play.winner} Wins!", True, win)
-        else:
-            text = font.render("It's a Draw!", True, win)
-        rect = text.get_rect(center=(450, 375))
-        pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
-        pygame.draw.rect(display, win , rect.inflate(40, 40), 5)
-        display.blit(text, rect)
+            if not game_on and time.time()-end_time>1.25:
+                font = pygame.font.SysFont(None, 72)
+                if self.winner != 0:
+                    text = font.render(f"Player {self.winner} Wins!", True, win)
+                else:
+                    text = font.render("It's a Draw!", True, win)
+                rect = text.get_rect(center=(450, 375))
+                pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
+                pygame.draw.rect(display, win , rect.inflate(40, 40), 5)
+                display.blit(text, rect)
     
-    pygame.display.update()
+            pygame.display.update()
 
