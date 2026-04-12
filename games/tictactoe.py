@@ -52,7 +52,7 @@ class Tictactoe(games):
             self.win_line = ((135+posn[1][0]*70,60+posn[0][0]*70),(4*70+135+posn[1][0]*70,4*70+60+posn[0][0]*70))
             return self.active
         #bottom left to top right
-        d2 = t[rows-1:rows-1-length-1,0:0+length+1] & t[rows-2:rows-length-3,1:2+length] & t[rows-3:rows-length-4,2:3+length] & t[rows-4:rows-length-5,4:length+5]
+        d2 = t[rows-1-length:rows,0:0+length+1] & t[rows-length-2:rows-1,1:2+length] & t[rows-length-3:rows-2,2:3+length] & t[rows-length-4:rows-3,3:length+4] & t[rows-length-5:rows-4,4:length+5]
         if np.any(d2):
             posn = np.where(d2 == 1)
             self.win_line = ((135+(posn[1][0])*70,60+(posn[0][0]+4)*70),(4*70+135+posn[1][0]*70,60+(posn[0][0]+4)*70-4*70))
@@ -119,4 +119,3 @@ class Tictactoe(games):
                 pygame.draw.rect(display, GREEN, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
             pygame.display.update()    
-            
