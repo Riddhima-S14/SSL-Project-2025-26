@@ -1,7 +1,10 @@
 import sys
 import time
 import pygame
+import random
+import os
 import numpy as np
+import matplotlib.pyplot as plt
 from games.tictactoe import Tictactoe
 from games.connect4 import Connect
 from games.pong import Pong
@@ -9,188 +12,267 @@ from games.battleship import Battleship
 
 pygame.init()
 
+#window setup
 WIDTH, HEIGHT=900, 750
+screen=pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Game Hub")
+
+#colours
 WHITE=(255, 255, 255)
 YELLOW=(255, 255, 0)
-BLACK=(0, 0, 0)
+TEAL=(0, 128, 128)
 
-#player1="s"
-#player2="r"
-player1=sys.argv[1]
-player2=sys.argv[2]
+#input names
 
-screen=pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Space Arcade")
+if len(sys.argv)>1:
+    player1=sys.argv[1]
+    player2=sys.argv[2]
+else:
+    player1="s"
+    player2="r"
 
-font_big=pygame.font.Font("PressStart2P-Regular.ttf", 36)
-font_small=pygame.font.Font("PressStart2P-Regular.ttf", 18)
-font_name=pygame.font.Font("PressStart2P-Regular.ttf", 14)
-font_game=pygame.font.Font("PressStart2P-Regular.ttf", 16)
+#setting up paths
+BASE_PATH=os.path.dirname(__file__)
+ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
 
-main_stars=pygame.image.load("space_arcade_stars.png")
-main_no_stars=pygame.image.load("space_arcade_no_stars.png")
-bg_stars=pygame.image.load("background_stars.png")
-bg_no_stars=pygame.image.load("background_no_stars.png")
 
-menu_0=pygame.image.load("menu_blue.png")
-menu_1=pygame.image.load("menu_1.png")
-menu_2=pygame.image.load("menu_2.png")
-menu_3=pygame.image.load("menu_3.png")
-menu_4=pygame.image.load("menu_4.png")
-menu_5=pygame.image.load("menu_5.png")
+#fonts
+font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+font_big=pygame.font.Font(font_path, 32)
+font_medium=pygame.font.Font(font_path, 26)
+font_small=pygame.font.Font(font_path, 18)
+font_name=pygame.font.Font(font_path, 14)
 
-play_rect=font_big.render("PLAY", True, WHITE).get_rect(center=(WIDTH//2, 500))
-stats_rect=font_big.render("STATS", True, WHITE).get_rect(center=(WIDTH//2, 600))
-back_rect=font_small.render("BACK", True, WHITE).get_rect(bottomright=(WIDTH-55, HEIGHT-45))
+#load background
+bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "bg_main.png")).convert()
 
-box1=pygame.Rect(115, 315, 200, 155)
-box2=pygame.Rect(365, 315, 200, 155)
-box3=pygame.Rect(610, 315, 200, 155)
-box4=pygame.Rect(230, 520, 200, 160)
-box5=pygame.Rect(480, 520, 200, 160)
 
-FPS=pygame.time.Clock()
-show_stars=True
+#main screen animation
+GHOST_SIZE=(45, 45)
+
+def load_and_scale(name, size):
+    path=os.path.join(ASSETS_DIR, name)
+    img=pygame.image.load(path).convert_alpha()
+    return pygame.transform.scale(img, size)
+
+pac_img=load_and_scale("pac.png", GHOST_SIZE)
+
+ghost_imgs = [
+    load_and_scale("red.png", GHOST_SIZE),
+    load_and_scale("teal.png", GHOST_SIZE),
+    load_and_scale("pink.png", GHOST_SIZE),
+    load_and_scale("orange.png", GHOST_SIZE)
+]
+
+pac_x=WIDTH
+pac_y=675 
+speed=8
+initial_gap=120 #between pac-man and the first ghost
+ghost_gap=70
+
+#load menu images
+
+menu_bgs=[]
+menu_names=["menu_normal.png", "menu_1.png", "menu_2.png", "menu_3.png", "menu_4.png", "menu_5.png"]
+
+for name in menu_names:
+    path=os.path.join(ASSETS_DIR, name)
+    menu_bgs.append(pygame.image.load(path).convert())
+    
+games=["", "TIC-TAC-TOE", "CONNECT-4", "OTHELLO", "BATTLESHIP", "PONG"]
+
+#option boxes
+box_rects = [
+    pygame.Rect(130, 280, 165, 170),
+    pygame.Rect(365, 280, 165, 170),
+    pygame.Rect(600, 280, 165, 170),
+    pygame.Rect(252, 480, 165, 170),
+    pygame.Rect(490, 480, 165, 170)
+]
+
+#back rectangle
+back_rect=pygame.Rect(750, 680, 100, 40)
+
+#menu animations
+crossing=False
+gx=-100
+gy=400
+g_speed=5
+gap=100
+pac_dir="left"
+#g_img=ghost_imgs[0]
+last_exit=time.time()
+g_dir="horizontal"
+spawn_delay=1.0 
+
+#variables
+state="main" 
+show_blink=True
 last_blink=time.time()
-blink_interval=0.5
-state="main"
+FPS=pygame.time.Clock()
 
 
+#to draw player labels and names
 def draw_players():
-    p1_text=font_small.render("PLAYER 1", True, WHITE)
-    p2_text=font_small.render("PLAYER 2", True, WHITE)
-    p1_name=font_name.render(player1, True, WHITE)
-    p2_name=font_name.render(player2, True, WHITE)
+    p1_label=font_name.render("PLAYER 1", True, WHITE)
+    p1_val=font_name.render(player1, True, WHITE)
+    p2_label=font_name.render("PLAYER 2", True, WHITE)
+    p2_val=font_name.render(player2, True, WHITE)
+    screen.blit(p1_label, (50, 35))
+    screen.blit(p1_val, (50, 60))
+    screen.blit(p2_label, (WIDTH-180, 35))
+    screen.blit(p2_val, (WIDTH-180, 60))
 
-    p1_rect=p1_text.get_rect(topleft=(50, 30))
-    p2_rect=p2_text.get_rect(topright=(WIDTH - 50, 30))
-
-    p1_name_rect=p1_name.get_rect(midtop=(p1_rect.centerx, p1_rect.bottom + 18))
-    p2_name_rect=p2_name.get_rect(midtop=(p2_rect.centerx, p2_rect.bottom + 18))
-
-    screen.blit(p1_text, p1_rect)
-    screen.blit(p2_text, p2_rect)
-    screen.blit(p1_name, p1_name_rect)
-    screen.blit(p2_name, p2_name_rect)
-
-
-def hovered_box(pos):
-    if box1.collidepoint(pos):
-        return 1
-    if box2.collidepoint(pos):
-        return 2
-    if box3.collidepoint(pos):
-        return 3
-    if box4.collidepoint(pos):
-        return 4
-    if box5.collidepoint(pos):
-        return 5
+#for the menu
+def get_hover():
+    mouse_pos=pygame.mouse.get_pos()
+    for i, rect in enumerate(box_rects):
+        if rect.collidepoint(mouse_pos):
+            return i + 1
     return 0
 
-
 def launch_game(choice):
-    if choice==1:
-        Tictactoe(player1, player2).execution()
-    elif choice==2:
-        Connect(player1, player2).execution()
-    elif choice==3:
-        Pong(player1, player2).execution()
-    elif choice==4:
-        Battleship(player1, player2, (7, 10)).execution()
-    elif choice==5:
-        pass
+    if choice==1: Tictactoe(player1, player2).execution()
+    elif choice==2: Connect(player1, player2).execution()
+    elif choice==3: pass 
+    elif choice==4: Battleship(player1, player2, (7, 10)).execution()
+    elif choice==5: Pong(player1, player2).execution()
 
 running=True
+
 while running:
     mouse_pos=pygame.mouse.get_pos()
-
+    
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
-            running=False
-            pygame.quit()
-            sys.exit()
-
+            running = False
+        if event.type==pygame.KEYDOWN:
+            if state=="main" and event.key==pygame.K_RETURN:
+                state="animation"
+                pac_x=WIDTH #reset the animation
+    
         if event.type==pygame.MOUSEBUTTONDOWN:
-            if state=="main":
-                if play_rect.collidepoint(event.pos):
-                    state="menu"
-                elif stats_rect.collidepoint(event.pos):
-                    pass
-
-            elif state=="menu":
-                hover=hovered_box(event.pos)
-
+            if state=="menu":
+                hover=get_hover()
                 if hover!=0:
                     launch_game(hover)
-                    state="menu"
-
-                elif back_rect.collidepoint(event.pos):
+                elif back_rect.collidepoint(mouse_pos):
                     state="main"
 
-    if time.time()-last_blink>blink_interval:
-        show_stars=not show_stars
+    if time.time()-last_blink>0.5:
+        show_blink=not show_blink
         last_blink=time.time()
 
-    if show_stars:
-        if state=="main":
-            screen.blit(main_stars, (0, 0))
-        else:
-            screen.blit(bg_stars, (0, 0))
-    else:
-        if state=="main":
-            screen.blit(main_no_stars, (0,0))
-        else:
-            screen.blit(bg_no_stars, (0, 0))
-
-    draw_players()
-
     if state=="main":
-        play_text=font_big.render("PLAY", True, YELLOW if play_rect.collidepoint(mouse_pos) else WHITE)
-        stats_text=font_big.render("STATS", True, YELLOW if stats_rect.collidepoint(mouse_pos) else WHITE)
+        screen.blit(bg_main, (0, 0))
+        draw_players()
+        if show_blink:
+            blink_txt=font_medium.render("INSERT COIN TO START", True, YELLOW)
+            screen.blit(blink_txt, blink_txt.get_rect(center=(WIDTH//2, 395)))
 
-        screen.blit(play_text, play_rect)
-        screen.blit(stats_text, stats_rect)
+    elif state=="animation":
+        screen.blit(bg_main, (0, 0))
+        draw_players()
+        pac_x-=speed
+        screen.blit(pac_img, (pac_x, pac_y))
+        ghosts_visible=0
+        for i, img in enumerate(ghost_imgs):
+            gx=pac_x+initial_gap+(i*ghost_gap)
+            if gx+img.get_width()>0:
+                screen.blit(img, (gx, pac_y))
+                ghosts_visible+=1
+        if ghosts_visible==0 and pac_x<-100:
+            state="menu"
 
     elif state=="menu":
-        hover=hovered_box(mouse_pos)
+        hover=get_hover()
+        screen.blit(menu_bgs[hover], (0, 0))
+        
+        #random ghosts crossing the menu
+        if not crossing:
+            if time.time()-last_exit>spawn_delay:
+                crossing=True
+                g_img=random.choice(ghost_imgs)
+                lane=random.randint(1, 4)
+                reverse=random.randint(0, 1)
+                
+                #pick a lane
+                if lane==1 or lane==2:
+                    g_dir="horizontal"
+                    if reverse==1:
+                        gx=WIDTH+150
+                        g_speed=-5
+                        p_draw=pac_img
+                        g_draw=g_img
+                    else:
+                        gx=-150
+                        g_speed=5
+                        p_draw=pygame.transform.flip(pac_img, True, False)
+                        g_draw=pygame.transform.flip(g_img, True, False)
+                    gy=670 if reverse==1 else 210
+                if lane==3 or lane==4:
+                    g_dir="vertical"
+                    if reverse==1:
+                        gy=HEIGHT+150
+                        g_speed=-5
+                        p_draw=pygame.transform.rotate(pac_img, -90)
+                        g_draw=pygame.transform.rotate(g_img, 90)
+                        g_draw=pygame.transform.flip(g_draw, False, True)
+                    else:
+                        gy=-50
+                        g_speed=5
+                        p_draw=pygame.transform.rotate(pac_img, 90)
+                        g_draw=pygame.transform.rotate(g_img, -90)
+                        g_draw=pygame.transform.flip(g_draw, True, True)
+                    gx=60 if lane==3 else 820
+                
+        else:
+            if g_dir=="horizontal":
+                gx+=g_speed
+                if g_speed>0:
+                    ghost_x=gx-100
+                else:
+                    ghost_x=gx+100
+                ghost_y=gy
+            else:
+                gy+=g_speed
+                if g_speed>0:
+                    ghost_y=gy-100
+                else: 
+                    ghost_y=gy+100
+                ghost_x=gx
 
-        if hover==0:
-            screen.blit(menu_0, (0, 0))
-        elif hover==1:
-            screen.blit(menu_1, (0, 0))
-        elif hover==2:
-            screen.blit(menu_2, (0, 0))
-        elif hover==3:
-            screen.blit(menu_3, (0, 0))
-        elif hover==4:
-            screen.blit(menu_4, (0, 0))
-        elif hover==5:
-            screen.blit(menu_5, (0, 0))
+            screen.blit(p_draw, (gx, gy))
+            screen.blit(g_draw, (ghost_x, ghost_y))
 
+            #check if they left
+            if g_dir=="horizontal":
+                if gx>WIDTH+200 or gx<-200:
+                    crossing=False
+                    last_exit=time.time()
+            else:
+                if gy>HEIGHT+200 or gy<-200:
+                    crossing=False
+                    last_exit=time.time()
+
+       
         draw_players()
 
-        title_text=font_big.render("CHOOSE YOUR GAME", True, YELLOW)
-        title_rect=title_text.get_rect(center=(WIDTH // 2, 135))
-        screen.blit(title_text, title_rect)
+        title_txt = font_big.render("CHOOSE YOUR GAME", True, WHITE)
+        screen.blit(title_txt, title_txt.get_rect(center=(WIDTH//2, 165)))
 
-        if hover==1:
-            name_text=font_game.render("TIC TAC TOE", True, WHITE)
-            screen.blit(name_text, name_text.get_rect(center=(WIDTH // 2, 225)))
-        elif hover==2:
-            name_text = font_game.render("CONNECT 4", True, WHITE)
-            screen.blit(name_text, name_text.get_rect(center=(WIDTH // 2, 225)))
-        elif hover==3:
-            name_text = font_game.render("PONG", True, WHITE)
-            screen.blit(name_text, name_text.get_rect(center=(WIDTH // 2, 225)))
-        elif hover==4:
-            name_text = font_game.render("BATTLESHIP", True, WHITE)
-            screen.blit(name_text, name_text.get_rect(center=(WIDTH // 2, 225)))
-        elif hover==5:
-            name_text = font_game.render("OTHELLO", True, WHITE)
-            screen.blit(name_text, name_text.get_rect(center=(WIDTH // 2, 225)))
+        
+        if hover<=5:
+            name_txt=font_small.render(games[hover], True, WHITE)
+            screen.blit(name_txt, name_txt.get_rect(center=(WIDTH//2, 235)))
 
-        back_text=font_small.render("BACK", True, YELLOW if back_rect.collidepoint(mouse_pos) else WHITE)
-        screen.blit(back_text, back_rect)
+        #back button
+        back_hover=back_rect.collidepoint(mouse_pos)
+        back_color=YELLOW if back_hover else WHITE
+        back_txt=font_small.render("BACK", True, back_color)
+        screen.blit(back_txt, (WIDTH-120, HEIGHT-50))
 
     pygame.display.flip()
     FPS.tick(60)
+
+pygame.quit()
