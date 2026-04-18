@@ -1,7 +1,8 @@
 #othello
-from game import games
+from game import games_class
 import numpy as np
 import pygame
+import os
 import time
 from pygame.locals import *
 pygame.init()
@@ -10,7 +11,10 @@ pygame.init()
 
 #player 1 - 1 - col 1
 #player 2 - -1 - col 2
-
+BLUE  = (0, 0, 255)
+RED   = (255, 0, 0)
+WHITE = (255, 255, 255)
+YELLOW=(255, 255, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 boardcol = (0,236,255)
@@ -19,18 +23,18 @@ col2 = (255,0,127)
 wincol = (255,136,0)
 
 
-class othello(games):
+class othello(games_class):
     def occ(self,x,y):
         if (self.board[x,y] == 0):
             return False
         else:
             return True
     def box(self,posn):
-        if posn[0]<130 or posn[0]>770 or posn[1]<55 or posn[1]>695 :
+        if posn[0]<210 or posn[0]>690 or posn[1]<170 or posn[1]>650 :
             return((-1,-1))
         else:
-            x = (posn[0]-130)//80
-            y = (posn[1]-55)//80
+            x = (posn[0]-210)//60
+            y = (posn[1]-170)//60
             return((y,x))
         
     def valid(self, a):
@@ -39,7 +43,6 @@ class othello(games):
     def finding_valid(self, box, check=False):
         r,c = box[0],box[1]
         matrix = (self.board[max(r-1,0):min(8,r+2),max(c-1,0):min(8,c+2)] == self.n_active)
-        print(matrix)
         valid = False
         if np.any(matrix):
             pos_r = 1 if r > 0 else 0
@@ -62,9 +65,7 @@ class othello(games):
                     self.board[r,c-pieces:c] = self.active
             #vertical
             if any(np.all(direction == [1,0], axis=1)):
-                print("yes")
                 pieces = np.argmin(self.board[r+1:,c] == self.n_active)
-                print(pieces)
                 if pieces > 0 and self.board[min(r+1+pieces,7),c] == self.active:
                     if check:
                         return True
@@ -91,14 +92,12 @@ class othello(games):
             #top right diagonal
             if any(np.all(direction == [1,-1], axis=1)):
                 pieces = np.argmin(np.diagonal((self.board[r+1:,c-1::-1])) == self.n_active)
-                print(pieces)
                 if pieces > 0 and self.board[min(7,r+1+pieces),max(c-pieces-1,0)] == self.active:
                     if check:
                         return True
                     self.board[r+1:r+1+pieces,c-pieces:c] += np.fliplr(np.eye(pieces)*(self.active-self.n_active))
             if any(np.all(direction == [-1, 1], axis=1)):
                 pieces = np.argmin(np.diagonal((self.board[r-1::-1,c+1:])) == self.n_active)
-                print(pieces)
                 if pieces > 0 and self.board[max(r-pieces-1,0), min(7,c+1+pieces)] == self.active:
                     if check:
                         return True
@@ -108,18 +107,57 @@ class othello(games):
     def valid_left(self):
         for i in range(8):
             for j in range(8):
-                if self.finding_valid((i, j),True):
+                if not self.occ(i,j) and self.finding_valid((i, j),True):
                     return True    
         return True    
     def win_check(self):
         score1 = np.sum(self.board == 1)
         score2 = np.sum(self.board == 2)
         if score1 > score2:
-            return 1
+            return self.player1
         elif score2 > score1:
-            return 2
+            return self.player2
         return 0
+    def show(self,screen, mouse_pos):
+        BASE_PATH=os.path.dirname(__file__)
+        ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
+
+        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        font_big=pygame.font.Font(font_path, 50)
+        font_medium=pygame.font.Font(font_path, 26)
+        font_small=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 18)
+
+        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "Othello_image.jpeg")).convert()
+        screen.blit(bg_main, (0, 0))
+
+        p1_label=font_name.render("PLAYER 1", True, col1)
+        p1_val=font_name.render(f"{self.player1}", True, col1)
+        p2_label=font_name.render("PLAYER 2", True, col2)
+        p2_val=font_name.render(f"{self.player2}", True, col2)
+        screen.blit(p1_label, (50, 35))
+        screen.blit(p1_val, (50, 60))
+        screen.blit(p2_label, (900-160, 35))
+        screen.blit(p2_val, (900-160, 60))
+
+
+        back_rect=pygame.Rect(750, 680, 100, 40)
+        reset_rect = pygame.Rect(0,680,110,40)
+
+        back_hover=back_rect.collidepoint(mouse_pos)
+        back_color=YELLOW if back_hover else WHITE
+        back_txt=font_small.render("BACK", True, back_color)
+        screen.blit(back_txt, (900-120, 750-50))
+        
+        reset_hover=reset_rect.collidepoint(mouse_pos)
+        reset_color=YELLOW if reset_hover else WHITE
+        reset_txt=font_small.render("RESET", True, reset_color)
+        screen.blit(reset_txt, (30, 700))
+
     def execution(self):
+
+        back_rect=pygame.Rect(750, 680, 100, 40)
+        reset_rect = pygame.Rect(0,680,100,50)
 
         pygame.display.set_caption("Othello")
         display = pygame.display.set_mode((900,750))
@@ -136,6 +174,13 @@ class othello(games):
                 if event.type == QUIT:
                     pygame.quit()
                 elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos=pygame.mouse.get_pos()
+                    if back_rect.collidepoint(mouse_pos):
+                        return 0
+                    if reset_rect.collidepoint(mouse_pos):
+                        self.board = np.zeros(64).reshape((8,8))
+                        self.board[3,3],self.board[4,4],self.board[3,4],self.board[4,3] = 1,1,2,2
+                        self.active = 1
                     position = event.pos
                     box = self.box(position)
                     if ( box[0]!=-1 ):
@@ -168,26 +213,28 @@ class othello(games):
                                 else:
                                     self.switch()
                 elif not game_on and event.type == pygame.KEYDOWN:
-                    pygame.quit()
-                    exit()
-
-            display.fill(BLACK)
+                    return 0
+            mouse_pos=pygame.mouse.get_pos()
+            self.show(display,mouse_pos)
             for i in range(1,8):
-                pygame.draw.line(display,GREEN,(130,55+80*i),(770,55+80*i),3)
-                pygame.draw.line(display,GREEN,(130+80*i,55), (130+80*i,695),3)
+                pygame.draw.line(display,GREEN,(210,170+60*i),(690,170+60*i),3)
+                pygame.draw.line(display,GREEN,(210+60*i,170), (210+60*i,650),3)
             for i in range(8):
                 for j in range(8):
                     if self.board[j,i] == 1:
-                        pygame.draw.circle(display, col1, (170+80*i,95+80*j),35)
+                        pygame.draw.circle(display, col1, (215+25+60*i,175+25+60*j),25)
                     elif self.board[j,i] == 2:
-                        pygame.draw.circle(display, col2, (170+80*i,95+80*j),35)
+                        pygame.draw.circle(display, col2, (215+25+60*i,175+25+60*j),25)
+                    elif self.board[j,i] ==0 and self.finding_valid((j,i),check = True):
+                        pygame.draw.circle(display, WHITE, (215+25+60*i,175+25+60*j),25)
+                        pygame.draw.circle(display, BLACK, (215+25+60*i,175+25+60*j),24)
             font = pygame.font.SysFont(None, 72)
             score_str1 = f"{np.sum(self.board == 1)}"
             score_surf1 = font.render(score_str1, True, col1)
             score_str2 = f"{np.sum(self.board == 2)}"
             score_surf2 = font.render(score_str2, True, col2)
-            display.blit(score_surf1, (65,375))
-            display.blit(score_surf2,(770+65,375))
+            display.blit(score_surf1, (55,375-200))
+            display.blit(score_surf2,(770+55,375-200))
              
             if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
