@@ -151,23 +151,34 @@ def get_hover():
             return i + 1
     return 0
 
+winner = 0
+
 def launch_game(choice):
     if choice==1: 
         from games.tictactoe import Tictactoe
-        Tictactoe(player1, player2).execution()
+        return Tictactoe(player1, player2).execution()
     elif choice==2:
         from games.connect4 import Connect
-        Connect(player1, player2).execution()
+        return Connect(player1, player2).execution()
     elif choice==3:
         from games.othello import othello
-        othello(player1, player2).execution()
+        return othello(player1, player2).execution()
     elif choice==4: 
         from games.battleship import Battleship
-        Battleship(player1, player2, (10,7)).execution()
+        return Battleship(player1, player2, (10,7)).execution()
     elif choice==5: 
         from games.pong import Pong
-        Pong(player1, player2).execution()
+        return Pong(player1, player2).execution()
 
+def history(w,l,game):
+    with open('history.csv','a') as f:
+        f.write(w+','+l+','+game+'\n')
+
+
+def update(winner,game):
+    if not( winner == 0.5 or winner == 0):
+        loser = player1 if (winner == player2) else player2
+        history(winner,loser,game)
 running=True
 if __name__ == "__main__":
     while running:
@@ -185,7 +196,8 @@ if __name__ == "__main__":
                 if state=="menu":
                     hover=get_hover()
                     if hover!=0:
-                        launch_game(hover)
+                        winner = launch_game(hover)
+                        update(winner,games_list[hover])
                         state == "menu"
                     elif back_rect.collidepoint(mouse_pos):
                         state="main"
