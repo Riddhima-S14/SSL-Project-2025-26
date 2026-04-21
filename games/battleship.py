@@ -94,19 +94,18 @@ class Battleship(games_class):
 
     def show(self, screen, mouse_pos):
         BASE_PATH = os.path.dirname(__file__)
-        ASSETS_DIR = os.path.join(BASE_PATH, 'assets')
+        ASSETS_DIR = os.path.join(BASE_PATH, '../assets')
         
         font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
         font_big=pygame.font.Font(font_path, 50)
         font_medium=pygame.font.Font(font_path, 26)
         font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 14)
         
-        if os.path.exists(os.path.join(ASSETS_DIR, "Battleship_image.png")):
-            bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "Battleship_image.png")).convert()
-            screen.blit(bg_main, (0, 0))
-        else:
-            screen.fill(BLACK)
+
+        bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "battleship_bg.png")).convert()
+        screen.blit(bg_main, (0, 0))
+    
 
         # Labels
         p1_label=font_name.render("PLAYER 1", True, BLUE)
@@ -197,15 +196,17 @@ class Battleship(games_class):
                         color = BLUE if self.board_p1[y, x] == 1 else WHITE
                         pygame.draw.circle(display, color, (LEFT_X + CENTER + x*CELL_SIZE, Y_OFFSET + CENTER + y*CELL_SIZE), 17)
 
-            # Winner Display
-            if not game_on and time.time() - end_time > 1.25:
+            if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
-                text = font.render(f"Player {self.winner} Wins!" if self.winner else "Draw!", True, GREEN)
-                rect = text.get_rect(center=(425, 375))
+                if self.winner != 0:
+                    text = self.font_medium.render(f"{self.winner} Wins!", True, WHITE)
+                else:
+                    text = self.font_medium.render("It's a Draw!", True, WHITE)
+                rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
-                pygame.draw.rect(display, GREEN, rect.inflate(40, 40), 5)
+                pygame.draw.rect(display, WHITE, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
                 if not game_on and time.time()-end_time>2.5:
-                    return self.winner  
+                        return self.winner 
 
             pygame.display.update()

@@ -24,6 +24,18 @@ wincol = (255,136,0)
 
 
 class othello(games_class):
+
+    BASE_PATH=os.path.dirname(__file__)
+    ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
+
+    font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+    font_big=pygame.font.Font(font_path, 50)
+    font_medium=pygame.font.Font(font_path, 32)
+    font_small=pygame.font.Font(font_path, 18)
+    font_name=pygame.font.Font(font_path, 14)
+
+    bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "othello_bg.png")).convert()
+
     def occ(self,x,y):
         if (self.board[x,y] == 0):
             return False
@@ -42,14 +54,15 @@ class othello(games_class):
 
     def finding_valid(self, box, check=False):
         r,c = box[0],box[1]
+        if self.occ(r,c):
+            return False
         matrix = (self.board[max(r-1,0):min(8,r+2),max(c-1,0):min(8,c+2)] == self.n_active)
         valid = False
         if np.any(matrix):
             pos_r = 1 if r > 0 else 0
             pos_c = 1 if c>0 else 0 
             direction = np.argwhere(matrix == 1) - [pos_r,pos_c]
-            print(direction)
-            #slice_end = (direction == 1)*8 + (direction == 0)*[r,c]
+            #slice_end = (direction == 1)8 + (direction == 0)[r,c]
             #horizontal
             if any(np.all(direction == [0, 1], axis=1)):
                 pieces = np.argmin(self.board[r,c+1:] == self.n_active)
@@ -119,26 +132,16 @@ class othello(games_class):
             return self.player2
         return 0
     def show(self,screen, mouse_pos):
-        BASE_PATH=os.path.dirname(__file__)
-        ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
+        screen.blit(self.bg_main, (0, 0))
 
-        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        font_big=pygame.font.Font(font_path, 50)
-        font_medium=pygame.font.Font(font_path, 26)
-        font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 18)
-
-        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "Othello_image.jpeg")).convert()
-        screen.blit(bg_main, (0, 0))
-
-        p1_label=font_name.render("PLAYER 1", True, col1)
-        p1_val=font_name.render(f"{self.player1}", True, col1)
-        p2_label=font_name.render("PLAYER 2", True, col2)
-        p2_val=font_name.render(f"{self.player2}", True, col2)
+        p1_label=self.font_name.render("PLAYER 1", True, col1)
+        p1_val=self.font_name.render(f"{self.player1}", True, col1)
+        p2_label=self.font_name.render("PLAYER 2", True, col2)
+        p2_val=self.font_name.render(f"{self.player2}", True, col2)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
-        screen.blit(p2_label, (900-160, 35))
-        screen.blit(p2_val, (900-160, 60))
+        screen.blit(p2_label, (900-180, 35))
+        screen.blit(p2_val, (900-180, 60))
 
 
         back_rect=pygame.Rect(750, 680, 100, 40)
@@ -146,12 +149,12 @@ class othello(games_class):
 
         back_hover=back_rect.collidepoint(mouse_pos)
         back_color=YELLOW if back_hover else WHITE
-        back_txt=font_small.render("BACK", True, back_color)
+        back_txt=self.font_small.render("BACK", True, back_color)
         screen.blit(back_txt, (900-120, 750-50))
         
         reset_hover=reset_rect.collidepoint(mouse_pos)
         reset_color=YELLOW if reset_hover else WHITE
-        reset_txt=font_small.render("RESET", True, reset_color)
+        reset_txt=self.font_small.render("RESET", True, reset_color)
         screen.blit(reset_txt, (30, 700))
 
     def execution(self):
@@ -226,20 +229,20 @@ class othello(games_class):
                     elif self.board[j,i] ==0 and self.finding_valid((j,i),check = True):
                         pygame.draw.circle(display, WHITE, (215+25+60*i,175+25+60*j),25)
                         pygame.draw.circle(display, BLACK, (215+25+60*i,175+25+60*j),24)
-            font = pygame.font.SysFont(None, 72)
+            
             score_str1 = f"{np.sum(self.board == 1)}"
-            score_surf1 = font.render(score_str1, True, col1)
+            score_surf1 = self.font_big.render(score_str1, True, col1)
             score_str2 = f"{np.sum(self.board == 2)}"
-            score_surf2 = font.render(score_str2, True, col2)
-            display.blit(score_surf1, (55,375-200))
-            display.blit(score_surf2,(770+55,375-200))
+            score_surf2 = self.font_big.render(score_str2, True, col2)
+            display.blit(score_surf1, (35,375-200))
+            display.blit(score_surf2,(770+15,375-200))
              
             if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
                 if self.winner != 0:
-                    text = font.render(f"Player {self.winner} Wins!", True, wincol)
+                    text = self.font_medium.render(f"{self.winner} Wins!", True, wincol)
                 else:
-                    text = font.render("It's a Draw!", True, wincol)
+                    text = self.font_medium.render("It's a Draw!", True, wincol)
                 rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
                 pygame.draw.rect(display, wincol , rect.inflate(40, 40), 5)

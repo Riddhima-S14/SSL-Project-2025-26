@@ -19,7 +19,7 @@ class Pong(games_class):
     def __init__(self, player1, player2):
         super().__init__(player1, player2)
         self.WIDTH, self.HEIGHT=900, 750
-        self.BOARD_WIDTH=850
+        self.BOARD_WIDTH=838
         self.BOARD_HEIGHT=550
         self.BOARD_X=30
         self.BOARD_Y=120
@@ -217,16 +217,16 @@ class Pong(games_class):
 
             self.draw()
 
-            if not game_on:
-                if time.time() - end_time > 2:
-                    font = pygame.font.SysFont(None, 72)
-                    text = font.render(f"{self.winner} Wins!", True, GREEN)
-                    rect = text.get_rect(center=(450, 375))
-                    pygame.draw.rect(self.display, BLACK, rect.inflate(40, 40))
-                    pygame.draw.rect(self.display, GREEN, rect.inflate(40, 40), 5)
-                    self.display.blit(text, rect)
-                if time.time() - end_time > 2.5:
-                    return self.winner
+            if not game_on and time.time()-end_time>0.75:
+                font = pygame.font.SysFont(None, 72)
+                
+                text = self.font_big.render(f"{self.winner} Wins!", True, WHITE)
+                rect = text.get_rect(center=(450, 375))
+                pygame.draw.rect(self.display, BLACK, rect.inflate(40, 40))
+                pygame.draw.rect(self.display, WHITE , rect.inflate(40, 40), 5)
+                self.display.blit(text, rect)
+                if not game_on and time.time()-end_time>2.5:
+                        return self.winner
             
 
             pygame.display.update()

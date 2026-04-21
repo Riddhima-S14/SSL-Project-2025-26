@@ -1,7 +1,6 @@
 import sys
 import time
 import pygame
-import random
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -95,13 +94,20 @@ ghost_gap=70
 menu_bgs=[]
 menu_names=["menu_normal.png", "menu_1.png", "menu_2.png", "menu_3.png", "menu_4.png", "menu_5.png"]
 
+post_bgs=[]
+post_names=["post.png", "post1.png", "post2.png", "post3.png", "post4.png"]
+
 for name in menu_names:
     path=os.path.join(ASSETS_DIR, name)
     menu_bgs.append(pygame.image.load(path).convert())
+
+for name in post_names:
+    path=os.path.join(ASSETS_DIR, name)
+    post_bgs.append(pygame.image.load(path).convert())
     
 games_list=["", "TIC-TAC-TOE", "CONNECT-4", "OTHELLO", "BATTLESHIP", "PONG"]
 
-#option boxes
+#option boxes (menu)
 box_rects = [
     pygame.Rect(130, 280, 165, 170),
     pygame.Rect(365, 280, 165, 170),
@@ -109,6 +115,16 @@ box_rects = [
     pygame.Rect(252, 480, 165, 170),
     pygame.Rect(490, 480, 165, 170)
 ]
+
+#position boxes (post game)
+post_rects = [
+    pygame.Rect(180, 100, 540, 130),
+    pygame.Rect(180, 265, 540, 130),
+    pygame.Rect(180, 430, 540, 130),
+    pygame.Rect(180, 600, 540, 130)
+]
+
+
 
 #back rectangle
 back_rect=pygame.Rect(750, 680, 100, 40)
@@ -144,14 +160,22 @@ def draw_players():
     screen.blit(p2_val, (WIDTH-180, 60))
 
 #for the menu
-def get_hover():
+def get_hover_menu():
     mouse_pos=pygame.mouse.get_pos()
     for i, rect in enumerate(box_rects):
         if rect.collidepoint(mouse_pos):
             return i + 1
     return 0
 
-winner = 0
+#for the post game menu
+def get_hover_post():
+    mouse_pos=pygame.mouse.get_pos()
+    for i, rect in enumerate(post_rects):
+        if rect.collidepoint(mouse_pos):
+            return i + 1
+    return 0
+
+winner=0
 
 def launch_game(choice):
     if choice==1: 
@@ -169,7 +193,7 @@ def launch_game(choice):
     elif choice==5: 
         from games.pong import Pong
         return Pong(player1, player2).execution()
-
+    
 def history(w,l,game):
     with open('history.csv','a') as f:
         f.write(w+','+l+','+game+'\n')
@@ -179,6 +203,7 @@ def update(winner,game):
     if not( winner == 0.5 or winner == 0):
         loser = player1 if (winner == player2) else player2
         history(winner,loser,game)
+
 running=True
 if __name__ == "__main__":
     while running:
@@ -186,25 +211,60 @@ if __name__ == "__main__":
         
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
-                running = False
+                running=False
             if event.type==pygame.KEYDOWN:
                 if state=="main" and event.key==pygame.K_RETURN:
                     state="animation"
                     pac_x=WIDTH #reset the animation
         
             if event.type==pygame.MOUSEBUTTONDOWN:
-                if state=="menu":
-                    hover=get_hover()
+
+                if state=="post_game":
+                    hover=get_hover_post()
+                    if hover==1:
+                        state="leaderboard"
+                    elif hover==2:
+                        state="stats"
+                    elif hover==3:
+                        state="menu"
+                    elif hover==4:
+                        running=False
+                        pygame.quit()
+
+                elif state=="menu":
+                    hover=get_hover_menu()
                     if hover!=0:
-                        winner = launch_game(hover)
+                        winner=launch_game(hover)
+
                         update(winner,games_list[hover])
-                        state == "menu"
+                        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                        pygame.display.set_caption("Game Hub")
+                        if winner==0:
+                            state="menu"
+                        else:
+                            state="post_game"
+                        #print(state)
                     elif back_rect.collidepoint(mouse_pos):
                         state="main"
+                    
+                '''if state=="post_game":
+                    hover=get_hover_post()
+                    if hover==1:
+                        state="leaderboard"
+                    elif hover==2:
+                        state="stats"
+                    elif hover==3:
+                        state="menu"
+                    elif hover==4:
+                        running=False
+                        pygame.quit()'''
+
 
         if time.time()-last_blink>0.5:
             show_blink=not show_blink
             last_blink=time.time()
+
+        #print(state)
 
         if state=="main":
             screen.blit(bg_main, (0, 0))
@@ -228,16 +288,16 @@ if __name__ == "__main__":
                 state="menu"
 
         elif state=="menu":
-            hover=get_hover()
+            hover=get_hover_menu()
             screen.blit(menu_bgs[hover], (0, 0))
             
             #random ghosts crossing the menu
             if not crossing:
                 if time.time()-last_exit>spawn_delay:
                     crossing=True
-                    g_img=random.choice(ghost_imgs)
-                    lane=random.randint(1, 4)
-                    reverse=random.randint(0, 1)
+                    g_img=np.random.choice(ghost_imgs)
+                    lane=np.random.randint(1, 5)
+                    reverse=np.random.randint(0, 2)
                     
                     #pick a lane
                     if lane==1 or lane==2:
@@ -314,6 +374,20 @@ if __name__ == "__main__":
             back_color=YELLOW if back_hover else WHITE
             back_txt=font_small.render("BACK", True, back_color)
             screen.blit(back_txt, (WIDTH-120, HEIGHT-50))
+
+        elif state=="post_game":
+            screen.blit(post_bgs[0], (0, 0))
+
+            """txt = font_medium.render("POST GAME SCREEN", True, YELLOW)
+            screen.blit(txt, txt.get_rect(center=(WIDTH // 2, 120)))
+
+            draw_players()"""
+            hover=get_hover_post()
+            screen.blit(post_bgs[hover], (0, 0))
+
+            draw_players()
+
+
 
         pygame.display.flip()
         FPS.tick(60)

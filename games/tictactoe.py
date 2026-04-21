@@ -68,22 +68,22 @@ class Tictactoe(games_class):
         pygame.draw.line(surface, color, (x + size-5, y - size), (x - size+5, y + size),5)
     def show(self,screen, mouse_pos):
         BASE_PATH=os.path.dirname(__file__)
-        ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
+        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
 
         font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        font_big=pygame.font.Font(font_path, 50)
-        font_medium=pygame.font.Font(font_path, 26)
+        self.font_big=pygame.font.Font(font_path, 50)
+        self.font_medium=pygame.font.Font(font_path, 32)
         font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 14)
 
-        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "Tictactoe_image.jpeg")).convert()
+        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "tictactoe_bg.png")).convert()
         screen.blit(bg_main, (0, 0))
 
         p1_label=font_name.render("PLAYER 1", True, WHITE)
-        p1_symbol = font_big.render("O",True,BLUE)
+        p1_symbol = self.font_big.render("O",True,BLUE)
         p1_val=font_name.render(f"{self.player1}", True, WHITE)
         p2_label=font_name.render("PLAYER 2", True, WHITE)
-        p2_symbol = font_big.render("X",True,RED)
+        p2_symbol = self.font_big.render("X",True,RED)
         p2_val=font_name.render(f"{self.player2}", True, WHITE)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
@@ -173,16 +173,12 @@ class Tictactoe(games_class):
             if not game_on and self.win_line:
                 pygame.draw.line(display, WHITE, self.win_line[0], self.win_line[1], 8)
             if not game_on and time.time()-end_time>1.25:
-                BASE_PATH=os.path.dirname(__file__)
-                ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
-
-                font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-                font_end=pygame.font.Font(font_path, 72)
+                
                 col =  BLUE if self.winner == 1 else RED
                 if self.winner != 0:
-                    text = font_end.render(f" {self.winner} Wins!", True, col)
+                    text = self.font_medium.render(f" {self.winner} Wins!", True, col)
                 else:
-                    text = font_end.render("It's a Draw!", True, GREEN)
+                    text = self.font_medium.render("It's a Draw!", True, GREEN)
                 rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
                 pygame.draw.rect(display, GREEN if self.winner == 0 else col, rect.inflate(40, 40), 5)

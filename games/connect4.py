@@ -73,15 +73,15 @@ class Connect(games_class):
         return 0
     def show(self,screen, mouse_pos):
         BASE_PATH=os.path.dirname(__file__)
-        ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
+        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
 
         font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
         font_big=pygame.font.Font(font_path, 50)
         font_medium=pygame.font.Font(font_path, 26)
         font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 14)
 
-        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "Connect4_image.jpeg")).convert()
+        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "connect4_bg.png")).convert()
         screen.blit(bg_main, (0, 0))
 
         p1_label=font_name.render("PLAYER 1", True, col1)
@@ -162,17 +162,18 @@ class Connect(games_class):
                     elif self.board[r,c] == 0:
                         pygame.draw.circle(display, BLACK , (240+70*(c),200 + 70*(r)), 25)
     
-            if not game_on and time.time()-end_time>1.25:
+            if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
                 if self.winner != 0:
-                    text = font.render(f"{self.winner} Wins!", True, win)
+                    text = self.font_medium.render(f"{self.winner} Wins!", True, win)
                 else:
-                    text = font.render("It's a Draw!", True, win)
+                    text = self.font_medium.render("It's a Draw!", True, win)
                 rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
                 pygame.draw.rect(display, win , rect.inflate(40, 40), 5)
                 display.blit(text, rect)
-    
+                if not game_on and time.time()-end_time>2.5:
+                        return self.winner
             pygame.display.update()
 # play = Connect(1,2)
 # play.execution()
