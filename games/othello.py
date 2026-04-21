@@ -54,7 +54,7 @@ class othello(games_class):
 
     def finding_valid(self, box, check=False):
         r,c = box[0],box[1]
-        if self.occ(r,c):
+        if box[0]>-1 and self.occ(r,c):
             return False
         matrix = (self.board[max(r-1,0):min(8,r+2),max(c-1,0):min(8,c+2)] == self.n_active)
         valid = False
@@ -169,6 +169,7 @@ class othello(games_class):
 
         FPS = pygame.time.Clock()
 
+        switch = False
         end_time=None
         game_on = True
         while True:
@@ -177,6 +178,7 @@ class othello(games_class):
                 if event.type == QUIT:
                     pygame.quit()
                 elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
+                    switch = False
                     mouse_pos=pygame.mouse.get_pos()
                     if back_rect.collidepoint(mouse_pos):
                         return 0
@@ -190,6 +192,7 @@ class othello(games_class):
                         valid_moves = self.valid_left()
                         if (valid_moves == False):
                             self.switch()
+                            switch = True
                             if(self.valid_left() == False ):
                                 win = self.win_check()
                                 if win!=0:
@@ -236,10 +239,22 @@ class othello(games_class):
             score_surf2 = self.font_big.render(score_str2, True, col2)
             display.blit(score_surf1, (35,375-200))
             display.blit(score_surf2,(770+15,375-200))
+
+            valid_moves = self.valid_left()
+            if (valid_moves == False):
+                self.switch()
+                switch = True
+            if game_on and switch :
+                font = pygame.font.SysFont(None, 72)
+                text = font.render(f"No valid moves for {self.active}!", True, col1 if self.active == 1 else col2)
+                rect = text.get_rect(center=(450, 80))
+                pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
+                pygame.draw.rect(display, wincol , rect.inflate(40, 40), 5)
+                display.blit(text, rect)
              
             if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
-                if self.winner != 0:
+                if swin != 0:
                     text = self.font_medium.render(f"{self.winner} Wins!", True, wincol)
                 else:
                     text = self.font_medium.render("It's a Draw!", True, wincol)
