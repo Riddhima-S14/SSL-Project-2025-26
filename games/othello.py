@@ -109,7 +109,7 @@ class othello(games_class):
             for j in range(8):
                 if not self.occ(i,j) and self.finding_valid((i, j),True):
                     return True    
-        return True    
+        return False    
     def win_check(self):
         score1 = np.sum(self.board == 1)
         score2 = np.sum(self.board == 2)
@@ -212,8 +212,6 @@ class othello(games_class):
                                         game_on=False
                                 else:
                                     self.switch()
-                elif not game_on and event.type == pygame.KEYDOWN:
-                    return 0
             mouse_pos=pygame.mouse.get_pos()
             self.show(display,mouse_pos)
             for i in range(1,8):
@@ -246,6 +244,8 @@ class othello(games_class):
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
                 pygame.draw.rect(display, wincol , rect.inflate(40, 40), 5)
                 display.blit(text, rect)
+                if not game_on and time.time()-end_time>2.5:
+                        return self.winner
     
             pygame.display.update()
 # play = othello(1,2)
