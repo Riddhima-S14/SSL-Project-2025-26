@@ -96,8 +96,11 @@ class Battleship(games_class):
         BASE_PATH = os.path.dirname(__file__)
         ASSETS_DIR = os.path.join(BASE_PATH, 'assets')
         
-        font_path = os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        font_small = pygame.font.Font(font_path, 18) if os.path.exists(font_path) else pygame.font.SysFont(None, 24)
+        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        font_big=pygame.font.Font(font_path, 50)
+        font_medium=pygame.font.Font(font_path, 26)
+        font_small=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 18)
         
         if os.path.exists(os.path.join(ASSETS_DIR, "Battleship_image.png")):
             bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "Battleship_image.png")).convert()
@@ -106,10 +109,14 @@ class Battleship(games_class):
             screen.fill(BLACK)
 
         # Labels
-        p1_txt = font_small.render(f"P1: {self.player1}", True, BLUE)
-        p2_txt = font_small.render(f"P2: {self.player2}", True, GREEN)
-        screen.blit(p1_txt, (75, 60))
-        screen.blit(p2_txt, (900-150, 60))
+        p1_label=font_name.render("PLAYER 1", True, BLUE)
+        p1_val=font_name.render(f"{self.player1}", True, BLUE)
+        p2_label=font_name.render("PLAYER 2", True, GREEN)
+        p2_val=font_name.render(f"{self.player2}", True, GREEN)
+        screen.blit(p1_label, (50, 35))
+        screen.blit(p1_val, (50, 60))
+        screen.blit(p2_label, (900-180, 35))
+        screen.blit(p2_val, (900-180, 60))
 
         # UI Buttons
         back_rect = pygame.Rect(750, 680, 100, 40)
@@ -165,21 +172,19 @@ class Battleship(games_class):
                                     end_time = time.time()
                                     game_on = False
 
-                elif not game_on and event.type == pygame.KEYDOWN:
-                    return 0
 
             self.show(display, mouse_pos)
 
             # Draw 10x7 Grids
             for i in range(ROWS + 1):
                 py = Y_OFFSET + CELL_SIZE * i
-                pygame.draw.line(display, WHITE, (LEFT_X, py), (LEFT_X + CELL_SIZE * COLS, py), 2)
-                pygame.draw.line(display, WHITE, (RIGHT_X, py), (RIGHT_X + CELL_SIZE * COLS, py), 2)
+                pygame.draw.line(display, WHITE if self.active ==1 else GREEN, (LEFT_X, py), (LEFT_X + CELL_SIZE * COLS, py), 2)
+                pygame.draw.line(display, WHITE if self.active ==2 else BLUE, (RIGHT_X, py), (RIGHT_X + CELL_SIZE * COLS, py), 2)
             for i in range(COLS + 1):
                 px_l = LEFT_X + CELL_SIZE * i
                 px_r = RIGHT_X + CELL_SIZE * i
-                pygame.draw.line(display, WHITE, (px_l, Y_OFFSET), (px_l, Y_OFFSET + CELL_SIZE * ROWS), 2)
-                pygame.draw.line(display, WHITE, (px_r, Y_OFFSET), (px_r, Y_OFFSET + CELL_SIZE * ROWS), 2)
+                pygame.draw.line(display, WHITE if self.active ==1 else GREEN, (px_l, Y_OFFSET), (px_l, Y_OFFSET + CELL_SIZE * ROWS), 2)
+                pygame.draw.line(display, WHITE if self.active ==2 else BLUE, (px_r, Y_OFFSET), (px_r, Y_OFFSET + CELL_SIZE * ROWS), 2)
             pygame.draw.line(display,WHITE,(RIGHT_X-50,Y_OFFSET-25),(RIGHT_X-50,Y_OFFSET+10*CELL_SIZE+50))
             # Draw Hits/Misses
             for y in range(ROWS):
@@ -200,5 +205,7 @@ class Battleship(games_class):
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
                 pygame.draw.rect(display, GREEN, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
+                if not game_on and time.time()-end_time>2.5:
+                    return self.winner  
 
             pygame.display.update()
