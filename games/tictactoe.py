@@ -16,6 +16,8 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW=(255, 255, 0)
+BLUEDIM = (0,0,128)
+REDDIM = (128,0,0)
 
 class Tictactoe(games_class):
     def occ(self,x,y):
@@ -85,10 +87,10 @@ class Tictactoe(games_class):
         p2_val=font_name.render(f"{self.player2}", True, WHITE)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
-        screen.blit(p1_symbol, (60,90))
+        screen.blit(p1_symbol, (60,120))
         screen.blit(p2_label, (900-160, 35))
         screen.blit(p2_val, (900-160, 60))
-        screen.blit(p2_symbol, (900-110,90))
+        screen.blit(p2_symbol, (900-110,120))
 
 
         back_rect=pygame.Rect(750, 680, 100, 40)
@@ -144,8 +146,6 @@ class Tictactoe(games_class):
                             else:
                                 self.switch()
 
-                elif not game_on and time.time()-end_time>2.5:
-                    return self.winner
 
             mouse_pos=pygame.mouse.get_pos()
             self.show(display,mouse_pos)
@@ -156,7 +156,15 @@ class Tictactoe(games_class):
                 pygame.draw.line(display,GREEN,(205+49*i,165), (205+49*i,655),3)
             for i in range(10):
                 for j in range(10):
-                    if self.board[j,i] == 1:
+                    if self.board[j,i] == 0:
+                        hover_zone = pygame.Rect(205+49*i,165+49*j,49,49)
+                        if hover_zone.collidepoint(mouse_pos):
+                            if self.active == 1:
+                                pygame.draw.circle(display, BLUEDIM, (205+24+49*i,165+24+49*j), 20)
+                                pygame.draw.circle(display, BLACK, (205+24+49*i,165+24+49*j), 17)
+                            else:
+                                self.draw_cross(display,REDDIM,(205+24+49*i,165+24+49*j),20)   
+                    elif self.board[j,i] == 1:
                         pygame.draw.circle(display, BLUE, (205+24+49*i,165+24+49*j), 20)
                         pygame.draw.circle(display, BLACK, (205+24+49*i,165+24+49*j), 17)
 
@@ -165,16 +173,22 @@ class Tictactoe(games_class):
             if not game_on and self.win_line:
                 pygame.draw.line(display, WHITE, self.win_line[0], self.win_line[1], 8)
             if not game_on and time.time()-end_time>1.25:
-                font = pygame.font.SysFont(None, 72)
+                BASE_PATH=os.path.dirname(__file__)
+                ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
+
+                font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+                font_end=pygame.font.Font(font_path, 72)
+                col =  BLUE if self.winner == 1 else RED
                 if self.winner != 0:
-                    text = font.render(f" {self.winner} Wins!", True, GREEN)
+                    text = font_end.render(f" {self.winner} Wins!", True, col)
                 else:
-                    text = font.render("It's a Draw!", True, GREEN)
+                    text = font_end.render("It's a Draw!", True, GREEN)
                 rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
-                pygame.draw.rect(display, GREEN, rect.inflate(40, 40), 5)
+                pygame.draw.rect(display, GREEN if self.winner == 0 else col, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
-                        
+                if not game_on and time.time()-end_time>2.5:
+                    return self.winner        
             pygame.display.update()    
 
 # play = Tictactoe(1,2)
