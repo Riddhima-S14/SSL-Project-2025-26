@@ -28,6 +28,17 @@ class Battleship(games_class):
         self.hits_p1 = np.zeros(board_size)
         self.hits_p2 = np.zeros(board_size)
 
+
+        BASE_PATH = os.path.dirname(__file__)
+        ASSETS_DIR = os.path.join(BASE_PATH, '../assets')
+        self.bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "battleship_bg.png")).convert()
+        
+        self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        self.font_big=pygame.font.Font(self.font_path, 50)
+        self.font_medium=pygame.font.Font(self.font_path, 26)
+        self.font_small=pygame.font.Font(self.font_path, 18)
+        self.font_name=pygame.font.Font(self.font_path, 14)
+
     def place_ships(self, board):
         # Ship sizes
         ships = [5, 4, 3, 3, 2]
@@ -54,7 +65,7 @@ class Battleship(games_class):
         CELL_SIZE = 40
         ROWS, COLS = 10, 7
         LEFT_BOARD_X = 75+50
-        RIGHT_BOARD_X = 75+50 + (CELL_SIZE * COLS) + 100 # Larger gap for horizontal layout
+        RIGHT_BOARD_X = 75+50 + (CELL_SIZE * COLS) + 100 
         Y_OFFSET = 165
 
         # Check Left Board (Player 1)
@@ -93,25 +104,16 @@ class Battleship(games_class):
         return 0
 
     def show(self, screen, mouse_pos):
-        BASE_PATH = os.path.dirname(__file__)
-        ASSETS_DIR = os.path.join(BASE_PATH, '../assets')
-        
-        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        font_big=pygame.font.Font(font_path, 50)
-        font_medium=pygame.font.Font(font_path, 26)
-        font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 14)
-        
-
-        bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "battleship_bg.png")).convert()
-        screen.blit(bg_main, (0, 0))
+              
+       
+        screen.blit(self.bg_main, (0, 0))
     
 
         # Labels
-        p1_label=font_name.render("PLAYER 1", True, BLUE)
-        p1_val=font_name.render(f"{self.player1}", True, BLUE)
-        p2_label=font_name.render("PLAYER 2", True, GREEN)
-        p2_val=font_name.render(f"{self.player2}", True, GREEN)
+        p1_label=self.font_name.render("PLAYER 1", True, BLUE)
+        p1_val=self.font_name.render(f"{self.player1}", True, BLUE)
+        p2_label=self.font_name.render("PLAYER 2", True, GREEN)
+        p2_val=self.font_name.render(f"{self.player2}", True, GREEN)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
         screen.blit(p2_label, (900-180, 35))
@@ -124,8 +126,8 @@ class Battleship(games_class):
         back_color = YELLOW if back_rect.collidepoint(mouse_pos) else WHITE
         reset_color = YELLOW if reset_rect.collidepoint(mouse_pos) else WHITE
         
-        screen.blit(font_small.render("BACK", True, back_color), (750, 685))
-        screen.blit(font_small.render("RESET", True, reset_color), (75, 685))
+        screen.blit(self.font_small.render("BACK", True, back_color), (750, 685))
+        screen.blit(self.font_small.render("RESET", True, reset_color), (75, 685))
 
     def execution(self):
         CELL_SIZE = 40
@@ -157,6 +159,9 @@ class Battleship(games_class):
                         self.place_ships(self.board_p1)
                         self.place_ships(self.board_p2)
                         self.active = 1
+                        game_on = True       
+                        self.winner = 0 
+                        end_time = None
                     
                     y, x, target = self.box(event.pos)
                     if target != -1:

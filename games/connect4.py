@@ -75,19 +75,19 @@ class Connect(games_class):
         BASE_PATH=os.path.dirname(__file__)
         ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
 
-        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        font_big=pygame.font.Font(font_path, 50)
-        font_medium=pygame.font.Font(font_path, 26)
-        font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 14)
+        self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        self.font_big=pygame.font.Font(self.font_path, 50)
+        self.font_medium=pygame.font.Font(self.font_path, 26)
+        self.font_small=pygame.font.Font(self.font_path, 18)
+        self.font_name=pygame.font.Font(self.font_path, 14)
 
         bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "connect4_bg.png")).convert()
         screen.blit(bg_main, (0, 0))
 
-        p1_label=font_name.render("PLAYER 1", True, col1)
-        p1_val=font_name.render(f"{self.player1}", True, col1)
-        p2_label=font_name.render("PLAYER 2", True, col2)
-        p2_val=font_name.render(f"{self.player2}", True, col2)
+        p1_label=self.font_name.render("PLAYER 1", True, col1)
+        p1_val=self.font_name.render(f"{self.player1}", True, col1)
+        p2_label=self.font_name.render("PLAYER 2", True, col2)
+        p2_val=self.font_name.render(f"{self.player2}", True, col2)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
         screen.blit(p2_label, (900-180, 35))
@@ -98,12 +98,12 @@ class Connect(games_class):
 
         back_hover=back_rect.collidepoint(mouse_pos)
         back_color=YELLOW if back_hover else WHITE
-        back_txt=font_small.render("BACK", True, back_color)
+        back_txt=self.font_small.render("BACK", True, back_color)
         screen.blit(back_txt, (900-120, 750-50))
 
         reset_hover=reset_rect.collidepoint(mouse_pos)
         reset_color=YELLOW if reset_hover else WHITE
-        reset_txt=font_small.render("RESET", True, reset_color)
+        reset_txt=self.font_small.render("RESET", True, reset_color)
         screen.blit(reset_txt, (30, 700))
 
     def execution(self):

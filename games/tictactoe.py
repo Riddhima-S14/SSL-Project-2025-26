@@ -20,6 +20,19 @@ BLUEDIM = (0,0,128)
 REDDIM = (128,0,0)
 
 class Tictactoe(games_class):
+    def __init__(self, player1, player2, board=...):
+        super().__init__(player1, player2, board)
+        BASE_PATH=os.path.dirname(__file__)
+        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
+
+        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        self.font_big=pygame.font.Font(font_path, 50)
+        self.font_medium=pygame.font.Font(font_path, 32)
+        font_small=pygame.font.Font(font_path, 18)
+        font_name=pygame.font.Font(font_path, 14)
+
+        self.bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "tictactoe_bg.png")).convert()
+
     def occ(self,x,y):
         if self.board[x,y] == 0:
             return False
@@ -67,24 +80,15 @@ class Tictactoe(games_class):
         pygame.draw.line(surface, color, (x - size+5, y - size), (x + size-5, y + size),5)
         pygame.draw.line(surface, color, (x + size-5, y - size), (x - size+5, y + size),5)
     def show(self,screen, mouse_pos):
-        BASE_PATH=os.path.dirname(__file__)
-        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
+        
+        screen.blit(self.bg_main, (0, 0))
 
-        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        self.font_big=pygame.font.Font(font_path, 50)
-        self.font_medium=pygame.font.Font(font_path, 32)
-        font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 14)
-
-        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "tictactoe_bg.png")).convert()
-        screen.blit(bg_main, (0, 0))
-
-        p1_label=font_name.render("PLAYER 1", True, WHITE)
+        p1_label=self.font_name.render("PLAYER 1", True, WHITE)
         p1_symbol = self.font_big.render("O",True,BLUE)
-        p1_val=font_name.render(f"{self.player1}", True, WHITE)
-        p2_label=font_name.render("PLAYER 2", True, WHITE)
+        p1_val=self.font_name.render(f"{self.player1}", True, WHITE)
+        p2_label=self.font_name.render("PLAYER 2", True, WHITE)
         p2_symbol = self.font_big.render("X",True,RED)
-        p2_val=font_name.render(f"{self.player2}", True, WHITE)
+        p2_val=self.font_name.render(f"{self.player2}", True, WHITE)
         screen.blit(p1_label, (50, 35))
         screen.blit(p1_val, (50, 60))
         screen.blit(p1_symbol, (60,120))
@@ -98,12 +102,12 @@ class Tictactoe(games_class):
 
         back_hover=back_rect.collidepoint(mouse_pos)
         back_color=YELLOW if back_hover else WHITE
-        back_txt=font_small.render("BACK", True, back_color)
+        back_txt=self.font_small.render("BACK", True, back_color)
         screen.blit(back_txt, (900-120, 750-50))
         
         reset_hover=reset_rect.collidepoint(mouse_pos)
         reset_color=YELLOW if reset_hover else WHITE
-        reset_txt=font_small.render("RESET", True, reset_color)
+        reset_txt=self.font_small.render("RESET", True, reset_color)
         screen.blit(reset_txt, (30, 700))
 
 
