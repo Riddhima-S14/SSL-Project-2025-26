@@ -159,9 +159,10 @@ class Battleship(games_class):
                         self.place_ships(self.board_p1)
                         self.place_ships(self.board_p2)
                         self.active = 1
-                        game_on = True       
+                        self.n_active = 2
                         self.winner = 0 
                         end_time = None
+                        continue # Skip firing logic for this click
                     
                     y, x, target = self.box(event.pos)
                     if target != -1:
@@ -175,6 +176,8 @@ class Battleship(games_class):
                                     self.winner = winner
                                     end_time = time.time()
                                     game_on = False
+                
+                
 
 
             self.show(display, mouse_pos)

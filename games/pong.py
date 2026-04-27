@@ -226,7 +226,7 @@ class Pong(games_class):
                 pygame.draw.rect(self.display, WHITE , rect.inflate(40, 40), 5)
                 self.display.blit(text, rect)
                 if not game_on and time.time()-end_time>2.5:
-                        return self.winner
+                    return self.winner
             
 
             pygame.display.update()

@@ -25,11 +25,11 @@ class Tictactoe(games_class):
         BASE_PATH=os.path.dirname(__file__)
         ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
 
-        font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        self.font_big=pygame.font.Font(font_path, 50)
-        self.font_medium=pygame.font.Font(font_path, 32)
-        font_small=pygame.font.Font(font_path, 18)
-        font_name=pygame.font.Font(font_path, 14)
+        self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        self.font_big=pygame.font.Font(self.font_path, 50)
+        self.font_medium=pygame.font.Font(self.font_path, 32)
+        self.font_small=pygame.font.Font(self.font_path, 18)
+        self.font_name=pygame.font.Font(self.font_path, 14)
 
         self.bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "tictactoe_bg.png")).convert()
 
