@@ -1,11 +1,15 @@
 import sys
 import time
+import datetime
 import pygame
 import os
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+#backend that renders images directly to files (PNG) instead of opening a GUI window
+matplotlib.use('Agg')
+
 
 class games_class:
     def __init__(self, player1, player2, board=np.zeros(5)):
@@ -43,7 +47,7 @@ WHITE=(255, 255, 255)
 YELLOW=(255, 255, 0)
 TEAL=(0, 128, 128)
 
-#input names
+#input names from the command line
 
 if len(sys.argv)>1:
     player1=sys.argv[1]
@@ -64,7 +68,7 @@ font_medium=pygame.font.Font(font_path, 26)
 font_small=pygame.font.Font(font_path, 18)
 font_name=pygame.font.Font(font_path, 14)
 
-#load background
+#load backgrounds
 bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "bg_main.png")).convert()
 bg_stats=pygame.image.load(os.path.join(ASSETS_DIR, "stats.png")).convert()
 
@@ -146,6 +150,7 @@ leaderboard_rects = [
     pygame.Rect(332, 663, 260, 60),
 ]
 
+#position boxes(icons)
 icon_rects =[
     pygame.Rect(150, 290, 140, 140), 
     pygame.Rect(387, 290, 140, 140), 
@@ -155,13 +160,13 @@ icon_rects =[
 ]
 
 
-#back rectangle
+#rectangles for buttons
 back_rect=pygame.Rect(750, 680, 100, 40)
 stats_exit_rect=pygame.Rect(WIDTH - 150, 20, 130, 40)
 stats_leaderboard_rect=pygame.Rect(20, HEIGHT - 60, 280, 40)
 stats_play_again_rect=pygame.Rect(WIDTH-200, HEIGHT - 60, 180, 40)
 
-#menu animations
+#menu animation variables
 crossing=False
 gx=-100
 gy=400
@@ -236,23 +241,25 @@ def launch_game(choice):
     elif choice==5: 
         from games.pong import Pong
         return Pong(player1, player2).execution()
-    
+
+#write into history.csv  
 def history(w,l,game):
     with open(os.path.join(BASE_PATH, "history.csv"), 'a', newline="\n") as f:
-        f.write(w+','+l+','+game+'\n')
+        f.write(w+','+l+','+game+','+datetime.datetime.today()+'\n')
 
-
+#update history
 def update(winner,game):
     if not( winner == 0.5 or winner == 0):
         loser = player1 if (winner == player2) else player2
         history(winner,loser,game)
 
+#function for updating dictionnary for existing and non existing keys
 def dict_update(value,d):
     if value not in d.keys():
         d[value] = 1
     else:
         d[value] += 1 
-
+#drawing the plots
 def plots(file_name):
     win_dict = dict()
     lose_dict = dict()
@@ -271,7 +278,7 @@ def plots(file_name):
                 continue
 
             line = line_str.split(',')
-
+#safe check for if history.csv has invalid lines
             if len(line) < 3:
                 continue
 
@@ -281,16 +288,16 @@ def plots(file_name):
 
             if not winner or not loser or not game:
                 continue
-
+#update the winners, losers and game dictionnary
             dict_update(winner, win_dict)
             dict_update(loser, lose_dict)
             dict_update(game, game_dict)
-
+#for players with 0 wins or 0 losses
             if line[1] not in win_dict:
                 win_dict[line[1]] = 0
             if line[0] not in lose_dict:
                 lose_dict[line[0]] = 0
-
+#sorting dictionnary for top 5
     sorted_win = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
     
     top5 = list()
@@ -300,8 +307,8 @@ def plots(file_name):
         player_name = list(sorted_win.keys())[i]
         top5.append(player_name)
         top5_scores.append(win_dict[player_name])
-
-    fig1 = plt.figure(figsize=(6, 5), dpi=100)
+#creating the figures with high resolution
+    fig1 = plt.figure(figsize=(6, 5), dpi=300)
     plt.bar(top5, top5_scores, color='teal', edgecolor='black')
     plt.title('Top 5 Players', fontsize=14)
     plt.xlabel('Players')
@@ -314,7 +321,7 @@ def plots(file_name):
         plays = list(game_dict.values())
         labels = list(game_dict.keys())
 
-        fig2 = plt.figure(figsize=(6, 5), dpi=100)
+        fig2 = plt.figure(figsize=(6, 5), dpi=300)
         plt.pie(plays, labels=labels, autopct='%1.1f%%', startangle=140)
         plt.title("Most Played Games", fontsize=14)
         plt.tight_layout()
@@ -323,7 +330,7 @@ def plots(file_name):
             
 
 running=True
-if __name__ == "__main__":
+if __name__ == "_main_":
     history_path = os.path.join(BASE_PATH, "history.csv")
     if os.path.exists(history_path):
         plots(history_path)
@@ -333,15 +340,18 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
                 running=False
+            #press enter to start
             if event.type==pygame.KEYDOWN:
                 if state=="main" and event.key==pygame.K_RETURN:
                     state="animation"
                     pac_x=WIDTH #reset the animation
         
+            #if there's a click
             if event.type==pygame.MOUSEBUTTONDOWN:
 
                 if state=="post_game":
                     hover=get_hover_post()
+                    #which button
                     if hover==1:
                         state="leaderboard"
                     elif hover==2:
@@ -354,9 +364,11 @@ if __name__ == "__main__":
 
                 elif state=="menu":
                     hover=get_hover_menu()
+                    #which button
                     if hover!=0:
                         winner=launch_game(hover)
                         current_game=games_list[hover]
+                        #update history.csv
                         update(winner,games_list[hover])
                         plots(os.path.join(BASE_PATH, "history.csv"))
                         screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -371,6 +383,7 @@ if __name__ == "__main__":
 
                 elif state=="leaderboard":
                     hover=get_hover_leaderboard()
+                    #which button
                     sort_type = 0
                     if hover == 1: sort_type=1
                     elif hover == 2: sort_type=2
@@ -413,7 +426,7 @@ if __name__ == "__main__":
                 
                 
 
-
+        #for blinking animation
         if time.time()-last_blink>0.5:
             show_blink=not show_blink
             last_blink=time.time()
@@ -423,6 +436,7 @@ if __name__ == "__main__":
         if state=="main":
             screen.blit(bg_main, (0, 0))
             draw_players()
+            #show "insert coin"
             if show_blink:
                 blink_txt=font_medium.render("INSERT COIN TO START", True, YELLOW)
                 screen.blit(blink_txt, blink_txt.get_rect(center=(WIDTH//2, 395)))
@@ -433,16 +447,19 @@ if __name__ == "__main__":
             pac_x-=speed
             screen.blit(pac_img, (pac_x, pac_y))
             ghosts_visible=0
+            #animate the ghosts moving across the screen
             for i, img in enumerate(ghost_imgs):
                 gx=pac_x+initial_gap+(i*ghost_gap)
                 if gx+img.get_width()>0:
                     screen.blit(img, (gx, pac_y))
                     ghosts_visible+=1
+            #next screen when it's done
             if ghosts_visible==0 and pac_x<-100:
                 state="menu"
 
         elif state=="menu":
             hover=get_hover_menu()
+            #background images based on hover
             screen.blit(menu_bgs[hover], (0, 0))
             for i, rect in enumerate(icon_rects):
                 if i < len(icons):
@@ -522,7 +539,7 @@ if __name__ == "__main__":
             title_txt = font_big.render("CHOOSE YOUR GAME", True, WHITE)
             screen.blit(title_txt, title_txt.get_rect(center=(WIDTH//2, 165)))
 
-            
+            #game name display
             if hover<=5:
                 name_txt=font_small.render(games_list[hover], True, WHITE)
                 screen.blit(name_txt, name_txt.get_rect(center=(WIDTH//2, 235)))
@@ -580,6 +597,7 @@ if __name__ == "__main__":
                 msg = font_small.render("NO STATS AVAILABLE YET", True, WHITE)
                 screen.blit(msg, msg.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
             
+            #buttons
             exit_h = stats_exit_rect.collidepoint(mouse_pos)
             exit_color = YELLOW if exit_h else WHITE
             exit_txt = font_small.render("EXIT", True, exit_color)
