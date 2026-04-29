@@ -186,6 +186,7 @@ class othello(games_class):
                         self.board = np.zeros(64).reshape((8,8))
                         self.board[3,3],self.board[4,4],self.board[3,4],self.board[4,3] = 1,1,2,2
                         self.active = 1
+                        self.n_active = 2
                     position = event.pos
                     box = self.box(position)
                     if ( box[0]!=-1 ):
@@ -250,8 +251,9 @@ class othello(games_class):
                 text = self.font_small.render(f"No valid moves for {no_moves}!", True, col1 if self.active == 2 else col2)
                 rect = text.get_rect(center=(450, 80))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
-                pygame.draw.rect(display, wincol , rect.inflate(40, 40), 5)
+                pygame.draw.rect(display, BLACK, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
+                switch = False
              
             if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
@@ -262,7 +264,7 @@ class othello(games_class):
                     text = self.font_medium.render("It's a Draw!", True, wincol)
                 rect = text.get_rect(center=(450, 375))
                 pygame.draw.rect(display, BLACK, rect.inflate(40, 40))
-                pygame.draw.rect(display, wincol , rect.inflate(40, 40), 5)
+                pygame.draw.rect(display, BLACK, rect.inflate(40, 40), 5)
                 display.blit(text, rect)
                 if not game_on and time.time()-end_time>2.5:
                     return self.winner
