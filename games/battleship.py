@@ -20,7 +20,7 @@ YELLOW = (255,255,0)
 class Battleship(games_class):
     def __init__(self, player1, player2, board_size=(10, 7)):
         super().__init__(player1, player2, np.zeros(board_size))
-        # Updated to 10 Rows, 7 Columns
+        #set up boards
         self.board_p1 = np.zeros(board_size)
         self.board_p2 = np.zeros(board_size)
         self.place_ships(self.board_p1)
@@ -28,7 +28,7 @@ class Battleship(games_class):
         self.hits_p1 = np.zeros(board_size)
         self.hits_p2 = np.zeros(board_size)
 
-
+        #load assets
         BASE_PATH = os.path.dirname(__file__)
         ASSETS_DIR = os.path.join(BASE_PATH, '../assets')
         self.bg_main = pygame.image.load(os.path.join(ASSETS_DIR, "battleship_bg.png")).convert()
@@ -40,27 +40,27 @@ class Battleship(games_class):
         self.font_name=pygame.font.Font(self.font_path, 14)
 
     def place_ships(self, board):
-        # Ship sizes
+        #ship sizes
         ships = [5, 4, 3, 3, 2]
         for ship in ships:
             placed = False
+            #place ships randomly
             while not placed:
                 orientation = random.choice(["H", "V"])
                 if orientation == "H":
-                    # Columns are now 7
                     r = random.randint(0, 10 - 1)
                     c = random.randint(0, 7 - ship)
                     if np.all(board[r, c:c + ship] == 0):
                         board[r, c:c + ship] = 1
                         placed = True
                 else:
-                    # Rows are now 10
                     r = random.randint(0, 10 - ship)
                     c = random.randint(0, 7 - 1)
                     if np.all(board[r:r + ship, c] == 0):
                         board[r:r + ship, c] = 1
                         placed = True
 
+    #figure out which box was clicked
     def box(self, posn):
         CELL_SIZE = 40
         ROWS, COLS = 10, 7
@@ -68,14 +68,14 @@ class Battleship(games_class):
         RIGHT_BOARD_X = 75+50 + (CELL_SIZE * COLS) + 100 
         Y_OFFSET = 165
 
-        # Check Left Board (Player 1)
+        #left board
         if LEFT_BOARD_X <= posn[0] <= LEFT_BOARD_X + (CELL_SIZE * COLS) and \
            Y_OFFSET <= posn[1] <= Y_OFFSET + (CELL_SIZE * ROWS):
             x = (posn[0] - LEFT_BOARD_X) // CELL_SIZE
             y = (posn[1] - Y_OFFSET) // CELL_SIZE
             return (y, x, 1)
 
-        # Check Right Board (Player 2)
+        #right board
         elif RIGHT_BOARD_X <= posn[0] <= RIGHT_BOARD_X + (CELL_SIZE * COLS) and \
              Y_OFFSET <= posn[1] <= Y_OFFSET + (CELL_SIZE * ROWS):
             x = (posn[0] - RIGHT_BOARD_X) // CELL_SIZE
@@ -84,6 +84,7 @@ class Battleship(games_class):
 
         return (-1, -1, -1)
 
+    #check hits
     def fire(self, target):
         y, x = target
         if self.active == 1:
@@ -119,7 +120,7 @@ class Battleship(games_class):
         screen.blit(p2_label, (900-180, 35))
         screen.blit(p2_val, (900-180, 60))
 
-        # UI Buttons
+        #buttons
         back_rect = pygame.Rect(750, 680, 100, 40)
         reset_rect = pygame.Rect(75, 680, 110, 40)
 
@@ -149,8 +150,10 @@ class Battleship(games_class):
                     pygame.quit(); exit()
 
                 elif game_on and event.type == pygame.MOUSEBUTTONDOWN:
+                    #check clicks
                     if pygame.Rect(750, 680, 100, 40).collidepoint(mouse_pos): 
-                        return 0
+                        return 0 #exit
+                    #reset
                     if pygame.Rect(75, 680, 110, 40).collidepoint(mouse_pos):
                         self.board_p1=np.zeros((ROWS, COLS))
                         self.board_p2=np.zeros((ROWS, COLS))
@@ -162,8 +165,9 @@ class Battleship(games_class):
                         self.n_active = 2
                         self.winner = 0 
                         end_time = None
-                        continue # Skip firing logic for this click
+                        continue #skip firing logic for this click
                     
+                    #get click positions
                     y, x, target = self.box(event.pos)
                     if target != -1:
                         if (self.active == 1 and target == 2) or (self.active == 2 and target == 1):
@@ -182,7 +186,7 @@ class Battleship(games_class):
 
             self.show(display, mouse_pos)
 
-            # Draw 10x7 Grids
+            #draw 10x7 Grids
             for i in range(ROWS + 1):
                 py = Y_OFFSET + CELL_SIZE * i
                 pygame.draw.line(display, WHITE if self.active ==1 else GREEN, (LEFT_X, py), (LEFT_X + CELL_SIZE * COLS, py), 2)
@@ -193,7 +197,7 @@ class Battleship(games_class):
                 pygame.draw.line(display, WHITE if self.active ==1 else GREEN, (px_l, Y_OFFSET), (px_l, Y_OFFSET + CELL_SIZE * ROWS), 2)
                 pygame.draw.line(display, WHITE if self.active ==2 else BLUE, (px_r, Y_OFFSET), (px_r, Y_OFFSET + CELL_SIZE * ROWS), 2)
             pygame.draw.line(display,WHITE,(RIGHT_X-50,Y_OFFSET-25),(RIGHT_X-50,Y_OFFSET+10*CELL_SIZE+50))
-            # Draw Hits/Misses
+            #draw Hits/Misses
             for y in range(ROWS):
                 for x in range(COLS):
                     if self.hits_p2[y, x] == 1:
