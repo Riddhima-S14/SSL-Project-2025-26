@@ -27,7 +27,7 @@ class othello(games_class):
 
     BASE_PATH=os.path.dirname(__file__)
     ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
-
+#font names and background image
     font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
     font_big=pygame.font.Font(font_path, 50)
     font_medium=pygame.font.Font(font_path, 32)
@@ -35,12 +35,13 @@ class othello(games_class):
     font_name=pygame.font.Font(font_path, 14)
 
     bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "othello_bg.png")).convert()
-
+#if a cell in the board is occupied
     def occ(self,x,y):
         if (self.board[x,y] == 0):
             return False
         else:
             return True
+        #returns cell according to mouse click position
     def box(self,posn):
         if posn[0]<210 or posn[0]>690 or posn[1]<170 or posn[1]>650 :
             return((-1,-1))
@@ -54,28 +55,32 @@ class othello(games_class):
 
     def finding_valid(self, box, check=False):
         r,c = box[0],box[1]
-        if box[0]>-1 and self.occ(r,c):
+        if box[0]>-1 and self.occ(r,c): #checking if valid box and if its occupied, return
             return False
-        matrix = (self.board[max(r-1,0):min(8,r+2),max(c-1,0):min(8,c+2)] == self.n_active)
+        matrix = (self.board[max(r-1,0):min(8,r+2),max(c-1,0):min(8,c+2)] == self.n_active) #check the immediate 3x3 grid centred at the clicked box
         valid = False
         if np.any(matrix):
             pos_r = 1 if r > 0 else 0
             pos_c = 1 if c>0 else 0 
+            #get the directions in which opponent piece is present
+            #we only check these directions
             direction = np.argwhere(matrix == 1) - [pos_r,pos_c]
-            #slice_end = (direction == 1)8 + (direction == 0)[r,c]
+            #slice_end = if (direction == 1) then 8 + if (direction == 0) then [r,c]
             #horizontal
-            if any(np.all(direction == [0, 1], axis=1)):
-                pieces = np.argmin(self.board[r,c+1:] == self.n_active)
-                if pieces > 0 and self.board[r,min(c+1+pieces,7)] == self.active:
+            if any(np.all(direction == [0, 1], axis=1)): #checks if (0,1) direction needs to be checked
+                # we get -1 where piece of self.active is placed or its empty. Potion of this box is given by argmin
+                pieces = np.argmin(self.board[r,c+1:] == self.n_active) 
+                if pieces > 0 and self.board[r,min(c+1+pieces,7)] == self.active:#checks if the box was empty or active player's piece
                     if check:
-                        return True
-                    self.board[r,c+1:c+pieces+1] = self.active
+                        return True #only need if valid move is left
+                    self.board[r,c+1:c+pieces+1] = self.active #changes the board if valid move is played
             if any(np.all(direction == [0, -1], axis=1)):
                 pieces = np.argmin(self.board[r,c-1::-1] == self.n_active)
                 if pieces > 0 and self.board[r,max(c-pieces-1,0) ] == self.active:
                     if check:
                         return True
                     self.board[r,c-pieces:c] = self.active
+            #similar logic as above is used everywhere
             #vertical
             if any(np.all(direction == [1,0], axis=1)):
                 pieces = np.argmin(self.board[r+1:,c] == self.n_active)
@@ -117,12 +122,13 @@ class othello(games_class):
                     self.board[r-pieces:r,c+1:c+1+pieces] += np.fliplr(np.eye(pieces)*(self.active-self.n_active))
             if check:
                 return False
-    def valid_left(self):
+    def valid_left(self): #for all positions on board checks if any valid moves are left
         for i in range(8):
             for j in range(8):
                 if not self.occ(i,j) and self.finding_valid((i, j),True):
                     return True    
         return False    
+    #win condition
     def win_check(self):
         score1 = np.sum(self.board == 1)
         score2 = np.sum(self.board == 2)
@@ -143,7 +149,7 @@ class othello(games_class):
         screen.blit(p2_label, (900-180, 35))
         screen.blit(p2_val, (900-180, 60))
 
-
+#for back button and reset button hover
         back_rect=pygame.Rect(750, 680, 100, 40)
         reset_rect = pygame.Rect(0,680,110,40)
 
@@ -191,10 +197,10 @@ class othello(games_class):
                     box = self.box(position)
                     if ( box[0]!=-1 ):
                         valid_moves = self.valid_left()
-                        if (valid_moves == False):
+                        if (valid_moves == False):#if no valid moves switch turn
                             self.switch()
                             switch = True
-                            if(self.valid_left() == False ):
+                            if(self.valid_left() == False ):#if still no valid moves, game ends 
                                 win = self.win_check()
                                 if win!=0:
                                     self.winner = win
@@ -205,22 +211,23 @@ class othello(games_class):
                                     game_on=False
                         else:
                             move = self.finding_valid(box,True)
-                            if(move):
+                            if(move): 
                                 self.finding_valid(box)
                                 self.board[box] = self.active
-                                if (np.any(self.board == 0) == False):
+                                if (np.any(self.board == 0) == False):#for if board is full
                                     win = self.win_check()
                                     if win!=0:
                                         self.winner = win
                                         end_time=time.time()
                                         game_on=False
-                                    else:
+                                    else:#draw
                                         end_time=time.time()
                                         game_on=False
                                 else:
                                     self.switch()
             mouse_pos=pygame.mouse.get_pos()
             self.show(display,mouse_pos)
+            #draw the grid for the board
             for i in range(1,8):
                 pygame.draw.line(display,GREEN,(210,170+60*i),(690,170+60*i),3)
                 pygame.draw.line(display,GREEN,(210+60*i,170), (210+60*i,650),3)
@@ -240,7 +247,8 @@ class othello(games_class):
             score_surf2 = self.font_big.render(score_str2, True, col2)
             display.blit(score_surf1, (35,375-200))
             display.blit(score_surf2,(770+15,375-200))
-
+#for showing all valid moves 
+#if no valid moves, a message is flashed for no valid moves and turn is switched
             valid_moves = self.valid_left()
             if (valid_moves == False):
                 self.switch()
