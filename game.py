@@ -66,7 +66,7 @@ font_name=pygame.font.Font(font_path, 14)
 
 #load background
 bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "bg_main.png")).convert()
-
+bg_stats=pygame.image.load(os.path.join(ASSETS_DIR, "stats.png")).convert()
 
 #main screen animation
 GHOST_SIZE=(45, 45)
@@ -99,6 +99,9 @@ menu_names=["menu_normal.png", "menu_1.png", "menu_2.png", "menu_3.png", "menu_4
 post_bgs=[]
 post_names=["post.png", "post1.png", "post2.png", "post3.png", "post4.png"]
 
+leaderboard_bgs=[]
+leaderboard_names=["leaderboard.png", "l_1.png", "l_2.png", "l_3.png", "l_4.png", "l_5.png", "l_6.png"]
+
 for name in menu_names:
     path=os.path.join(ASSETS_DIR, name)
     menu_bgs.append(pygame.image.load(path).convert())
@@ -106,6 +109,10 @@ for name in menu_names:
 for name in post_names:
     path=os.path.join(ASSETS_DIR, name)
     post_bgs.append(pygame.image.load(path).convert())
+
+for name in leaderboard_names:
+    path=os.path.join(ASSETS_DIR, name)
+    leaderboard_bgs.append(pygame.image.load(path).convert())
     
 games_list=["", "TIC-TAC-TOE", "CONNECT-4", "OTHELLO", "BATTLESHIP", "PONG"]
 
@@ -126,10 +133,23 @@ post_rects = [
     pygame.Rect(180, 600, 540, 130)
 ]
 
+#position boxes (leaderboard page)
+leaderboard_rects = [
+    pygame.Rect(332, 130, 260, 60),
+    pygame.Rect(332, 217, 260, 60),
+    pygame.Rect(332, 307, 260, 60),
+    pygame.Rect(332, 485, 260, 60),
+    pygame.Rect(332, 575, 260, 60),
+    pygame.Rect(332, 663, 260, 60),
+]
+
 
 
 #back rectangle
 back_rect=pygame.Rect(750, 680, 100, 40)
+stats_exit_rect=pygame.Rect(WIDTH - 150, 20, 130, 40)
+stats_leaderboard_rect=pygame.Rect(20, HEIGHT - 60, 280, 40)
+stats_play_again_rect=pygame.Rect(WIDTH-200, HEIGHT - 60, 180, 40)
 
 #menu animations
 crossing=False
@@ -148,6 +168,9 @@ state="main"
 show_blink=True
 last_blink=time.time()
 FPS=pygame.time.Clock()
+current_game=""
+show_terminal_msg=False
+terminal_msg_time=0
 
 
 #to draw player labels and names
@@ -173,6 +196,14 @@ def get_hover_menu():
 def get_hover_post():
     mouse_pos=pygame.mouse.get_pos()
     for i, rect in enumerate(post_rects):
+        if rect.collidepoint(mouse_pos):
+            return i + 1
+    return 0
+
+#for the leaderboard menu
+def get_hover_leaderboard():
+    mouse_pos=pygame.mouse.get_pos()
+    for i, rect in enumerate(leaderboard_rects):
         if rect.collidepoint(mouse_pos):
             return i + 1
     return 0
@@ -286,8 +317,12 @@ if __name__ == "__main__":
                     hover=get_hover_menu()
                     if hover!=0:
                         winner=launch_game(hover)
+<<<<<<< HEAD
                         
 
+=======
+                        current_game=games_list[hover]
+>>>>>>> 208e54f6fc18d49da967286cade49bd26592c333
                         update(winner,games_list[hover])
                         plots("history.csv")
                         screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -299,6 +334,36 @@ if __name__ == "__main__":
                         #print(state)
                     elif back_rect.collidepoint(mouse_pos):
                         state="main"
+
+                elif state=="leaderboard":
+                    hover=get_hover_leaderboard()
+                    sort_type = 0
+                    if hover == 1: sort_type=1
+                    elif hover == 2: sort_type=2
+                    elif hover == 3: sort_type=3
+                    
+                    if hover in [1, 2, 3]:
+                        os.system('clear')
+                        os.system(f"bash leaderboard.sh {current_game} {sort_type}")
+                        show_terminal_msg = True
+                        terminal_msg_time = time.time()
+
+                    elif hover==4:
+                        state="stats"
+                    elif hover==5:
+                        state="menu"
+                    elif hover==6:
+                        pygame.quit()
+
+                elif state == "stats":
+                    if stats_exit_rect.collidepoint(mouse_pos):
+                        running=False
+                        pygame.quit()
+                        sys.exit()
+                    elif stats_leaderboard_rect.collidepoint(mouse_pos):
+                        state="leaderboard"
+                    elif stats_play_again_rect.collidepoint(mouse_pos):
+                        state="menu"
                     
                 '''if state=="post_game":
                     hover=get_hover_post()
@@ -311,6 +376,8 @@ if __name__ == "__main__":
                     elif hover==4:
                         running=False
                         pygame.quit()'''
+                
+                
 
 
         if time.time()-last_blink>0.5:
@@ -435,14 +502,47 @@ if __name__ == "__main__":
             screen.blit(txt, txt.get_rect(center=(WIDTH // 2, 120)))
 
             draw_players()"""
+
             hover=get_hover_post()
             screen.blit(post_bgs[hover], (0, 0))
 
             draw_players()
+        
+        elif state=="leaderboard":
+            hover=get_hover_leaderboard()
+            screen.blit(leaderboard_bgs[hover], (0, 0))
 
+    
+            if show_terminal_msg:
+                elapsed = time.time() - terminal_msg_time
+                if elapsed < 3.0: 
+                    term_txt = font_name.render("DISPLAYED ON TERMINAL", True, WHITE)
+                    text_rect = term_txt.get_rect(center=(WIDTH//2 + 20, 420))
+                    screen.blit(term_txt, text_rect)
+                else:
+                    show_terminal_msg = False
 
+        elif state=="stats":
+
+            screen.blit(bg_stats, (0, 0))
+
+            exit_h = stats_exit_rect.collidepoint(mouse_pos)
+            exit_color = YELLOW if exit_h else WHITE
+            exit_txt = font_small.render("EXIT", True, exit_color)
+            screen.blit(exit_txt, (WIDTH - 140, 30))
+
+            lead_h = stats_leaderboard_rect.collidepoint(mouse_pos)
+            lead_color = YELLOW if lead_h else WHITE
+            lead_txt = font_small.render("LEADERBOARD", True, lead_color)
+            screen.blit(lead_txt, (30, HEIGHT - 50))
+
+            play_h = stats_play_again_rect.collidepoint(mouse_pos)
+            play_color = YELLOW if play_h else WHITE
+            play_txt = font_small.render("PLAY AGAIN", True, play_color)
+            screen.blit(play_txt, (WIDTH - 200, HEIGHT - 50))
 
         pygame.display.flip()
+
         FPS.tick(60)
 
     pygame.quit()
