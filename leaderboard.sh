@@ -13,11 +13,9 @@ cat << "EOF"
  |_|\___|\__,_|\__,_|\___|_|  |_.__/ \___/ \__,_|_|  \__,_|
 EOF
 
-games=$(cut -d ',' -f 3 history.csv | sort | uniq)
+games=$(cut -d ',' -f 3 history.csv | tr -d '\r' | sort -u)
 
-
-ordered_games="$game_input $(echo "$games" | grep -vx "$game_input")"
-
+ordered_games="$game_input $(echo "$games" | grep -vxF "$game_input")"
 for game in $ordered_games; do
 
     # 2. Centered Game Header
@@ -34,22 +32,22 @@ for game in $ordered_games; do
 
     # 4. Data Processing
     touch temp.txt players.txt final_data.txt
-    grep "$game" history.csv | cut -d ',' -f 1 > temp.txt
-    grep "$game" history.csv | cut -d ',' -f 2 >> temp.txt
+    awk -F',' -v g="$game" '{sub(/\r$/, "", $3)} $3 == g {print $1}' history.csv > temp.txt
+    awk -F',' -v g="$game" '{sub(/\r$/, "", $3)} $3 == g {print $2}' history.csv >> temp.txt
     sort temp.txt | uniq > players.txt
 
     > final_data.txt
 
     while read -r p; do
         [ -z "$p" ] && continue
-        w=$(grep "$game" history.csv | cut -d ',' -f 1 | grep -xc "$p")
-        l=$(grep "$game" history.csv | cut -d ',' -f 2 | grep -xc "$p")
+        w=$(awk -F',' -v g="$game" -v p="$p" '{sub(/\r$/, "", $3)} $3==g && $1==p' history.csv | wc -l)
+        l=$(awk -F',' -v g="$game" -v p="$p" '{sub(/\r$/, "", $3)} $3==g && $2==p' history.csv | wc -l)
 
         if [[ $l -eq 0 ]]; then
             ratio_num="999.00"
             ratio_disp="UNDEFEATED"
         else
-            ratio_num=$(echo "scale=2; $w / $l" | bc)
+            ratio_num=$(awk "BEGIN { printf \"%.2f\", $w / $l }")
             ratio_disp=$ratio_num
         fi
 
