@@ -28,7 +28,7 @@ class Connect(games_class):
         super().__init__(player1, player2, board)
         BASE_PATH=os.path.dirname(__file__)
         ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
-
+#All fonts and back ground images used
         self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
         self.font_big=pygame.font.Font(self.font_path, 50)
         self.font_medium=pygame.font.Font(self.font_path, 26)
@@ -36,24 +36,26 @@ class Connect(games_class):
         self.font_name=pygame.font.Font(self.font_path, 14)
 
         self.bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "connect4_bg.png")).convert()
-
+#returns if a block on the board is occupied
     def occ(self,x,y):
         if (self.board[x,y] == 0 ):
             return False
         else:
             return True
+        #return the board column according to click
     def column(self,pos):
         if pos[0]>=205 and pos[0]<205+490 :
             column = (pos[0]-205)//70
             return column
         else:
             return -1
-    def available_row(self,column):
+    def available_row(self,column):#gives the first available position in the column from the bottom
         for i in range(6,-1,-1):
             if(self.occ(i,column) == False):
                 return i
         return -1
-            
+            #win condition using binary and logic to check for 4 in a row
+            #returns the winner
     def win_check(self):
         rows, cols = self.board.shape
         length = 4
@@ -99,7 +101,7 @@ class Connect(games_class):
 
         back_rect=pygame.Rect(750, 680, 100, 40)
         reset_rect = pygame.Rect(0,680,110,40)
-
+#for hover in back button and reset button
         back_hover=back_rect.collidepoint(mouse_pos)
         back_color=YELLOW if back_hover else WHITE
         back_txt=self.font_small.render("BACK", True, back_color)
@@ -133,7 +135,7 @@ class Connect(games_class):
                     if reset_rect.collidepoint(mouse_pos):
                         self.board = np.zeros(49).reshape((7,7))
                         self.active = 1
-                    c = self.column(position)
+                    c = self.column(position)#get the column clicked
                     if c >= 0 :
                         row = self.available_row(c)
                         if row >= 0:
@@ -144,7 +146,7 @@ class Connect(games_class):
                                 end_time=time.time()
                                 game_on=False
                             elif not np.any(self.board == 0):
-                                #draw
+                                #draw when board is full
                                 end_time=time.time()
                                 game_on=False
                             else:
@@ -154,7 +156,7 @@ class Connect(games_class):
             mouse_pos=pygame.mouse.get_pos()
             self.show(display,mouse_pos)
             pygame.draw.rect(display, boardcol, (205,165,490,490))
-        
+        #drawing the board with empty circles, tokens of player 1, of player 2 and winning tokens
             for r in range(7):
                 for c in range(7):
                     if self.board[r,c] == 1 :
@@ -165,7 +167,7 @@ class Connect(games_class):
                         pygame.draw.circle(display, win , (240+70*(c),200 + 70*(r)), 25)
                     elif self.board[r,c] == 0:
                         pygame.draw.circle(display, BLACK , (240+70*(c),200 + 70*(r)), 25)
-    
+    #winner message display
             if not game_on and time.time()-end_time>0.75:
                 font = pygame.font.SysFont(None, 72)
                 if self.winner != 0:
