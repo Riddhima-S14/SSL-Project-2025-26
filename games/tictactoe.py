@@ -25,6 +25,7 @@ class Tictactoe(games_class):
         BASE_PATH=os.path.dirname(__file__)
         ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
 
+# code setting the background image and fonts
         self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
         self.font_big=pygame.font.Font(self.font_path, 50)
         self.font_medium=pygame.font.Font(self.font_path, 32)
@@ -32,12 +33,13 @@ class Tictactoe(games_class):
         self.font_name=pygame.font.Font(self.font_path, 14)
 
         self.bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "tictactoe_bg.png")).convert()
-
+#checks if the board is occupied at x,y
     def occ(self,x,y):
         if self.board[x,y] == 0:
             return False
         else:
             return True
+#according to click we return the cell in the board
     def box(self,posn):
         if posn[0]<100 or posn[0]>800 or posn[1]<25 or posn[1]>725 :
             return((-1,-1))
@@ -45,6 +47,8 @@ class Tictactoe(games_class):
             x = (posn[0]-205)//49
             y = (posn[1]-165)//49
             return((y,x))
+#win condition: here we overlap truth matrices using binary and to avoid using a for loop and check for a win
+#Here, the final line to be drawn when game is over and one player has won is also defined in self.win_line
     def win_check(self):
         rows, cols = self.board.shape
         length = 5
@@ -75,6 +79,7 @@ class Tictactoe(games_class):
             self.win_line = ((205+24+(posn[1][0])*49,165+24+(posn[0][0]+4)*49),(4*49+205+24+posn[1][0]*49,165+24+(posn[0][0]+4)*49-4*49))
             return self.active
         return 0 
+    #Drawing a cross at specified centre
     def draw_cross(self,surface, color, center_pos, size):
         x, y = center_pos
         pygame.draw.line(surface, color, (x - size+5, y - size), (x + size-5, y + size),5)
@@ -99,7 +104,7 @@ class Tictactoe(games_class):
 
         back_rect=pygame.Rect(750, 680, 100, 40)
         reset_rect = pygame.Rect(0,680,110,40)
-
+#code for hovering on back button and reset button
         back_hover=back_rect.collidepoint(mouse_pos)
         back_color=YELLOW if back_hover else WHITE
         back_txt=self.font_small.render("BACK", True, back_color)
@@ -122,19 +127,23 @@ class Tictactoe(games_class):
         self.board = np.zeros(100).reshape((10,10))
         pygame.display.set_caption("Tic Tac Toe")
         game_on=True
+#main game loop
         while True:
             for event in pygame.event.get(): 
                 if event.type == QUIT:
                     pygame.quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+# we get position of mouse continuosly to check for back or reset button 
                     mouse_pos=pygame.mouse.get_pos()
                     if back_rect.collidepoint(mouse_pos):
                         return 0
                     if reset_rect.collidepoint(mouse_pos):
                         self.board = np.zeros(100).reshape((10,10))
                         self.active = 1
+                        self.n_active = 2
                     position = event.pos
                     g_box = self.box(position)
+                    #checking for if move was valid and within bounds of the board
                     if (g_box[0] >= 0):
                         if (self.occ(g_box[0],g_box[1]) == False):
                             self.board[g_box[0],g_box[1]] = self.active
@@ -144,7 +153,7 @@ class Tictactoe(games_class):
                                 end_time=time.time()
                                 game_on=False
                             elif not np.any(self.board == 0):
-                        #draw
+                        #draw due to full board
                                 end_time=time.time()
                                 game_on=False
                             else:
@@ -152,15 +161,17 @@ class Tictactoe(games_class):
 
 
             mouse_pos=pygame.mouse.get_pos()
+
             self.show(display,mouse_pos)
 
-
+#printing the grid for tic tac toe
             for i in range(0,11):
                 pygame.draw.line(display,GREEN,(205,165+49*i),(695,165+49*i),3)
                 pygame.draw.line(display,GREEN,(205+49*i,165), (205+49*i,655),3)
+            # applying hover for empty cells, O for player 1 and X for player 2 
             for i in range(10):
                 for j in range(10):
-                    if self.board[j,i] == 0:
+                    if self.board[j,i] == 0:#hover
                         hover_zone = pygame.Rect(205+49*i,165+49*j,49,49)
                         if hover_zone.collidepoint(mouse_pos):
                             if self.active == 1:
@@ -168,16 +179,18 @@ class Tictactoe(games_class):
                                 pygame.draw.circle(display, BLACK, (205+24+49*i,165+24+49*j), 17)
                             else:
                                 self.draw_cross(display,REDDIM,(205+24+49*i,165+24+49*j),20)   
+
                     elif self.board[j,i] == 1:
                         pygame.draw.circle(display, BLUE, (205+24+49*i,165+24+49*j), 20)
                         pygame.draw.circle(display, BLACK, (205+24+49*i,165+24+49*j), 17)
 
                     elif self.board[j,i] == 2:
                         self.draw_cross(display,RED,(205+24+49*i,165+24+49*j),20)
+#to draw win line if applicable
             if not game_on and self.win_line:
                 pygame.draw.line(display, WHITE, self.win_line[0], self.win_line[1], 8)
             if not game_on and time.time()-end_time>1.25:
-                
+            #winner message    
                 col =  BLUE if self.winner == 1 else RED
                 if self.winner != 0:
                     text = self.font_medium.render(f" {self.winner} Wins!", True, col)
