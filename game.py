@@ -247,43 +247,69 @@ def plots(file_name):
     win_dict = dict()
     lose_dict = dict()
     game_dict = dict()
-    with open(file_name,'r') as file:
-        lines=file.readlines()
-        for line_1 in lines:
-            if line_1 == '':
+
+    #avoid crashing on the first run
+    if not os.path.exists(file_name):
+        return
+
+    with open(file_name, 'r') as file:
+        lines = file.readlines()
+        for line_raw in lines:
+            #deal with carriage return issues
+            line_str = line_raw.strip()
+            if not line_str:
                 continue
-            line = line_1.split(',')
-            dict_update(line[0],win_dict)
-            dict_update(line[1],lose_dict)
-            dict_update(line[2],game_dict)
-            if line[1] not in win_dict.keys():
+
+            line = line_str.split(',')
+
+            if len(line) < 3:
+                continue
+
+            winner = line[0].strip()
+            loser = line[1].strip()
+            game = line[2].strip()
+
+            if not winner or not loser or not game:
+                continue
+
+            dict_update(winner, win_dict)
+            dict_update(loser, lose_dict)
+            dict_update(game, game_dict)
+
+            if line[1] not in win_dict:
                 win_dict[line[1]] = 0
-            if line[0] not in lose_dict.keys():
+            if line[0] not in lose_dict:
                 lose_dict[line[0]] = 0
-        sorted_win = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
-        top5 = list()
-        top5_scores = list()
-        for i in range (0,min(5, len(list(sorted_win.keys())))):
-            top5.append(list(sorted_win.keys())[i])
-            top5_scores.append(win_dict[top5[i]])         
-    fig1 = plt.figure(figsize=(6, 5), dpi=150)
-    fig1.set_size_inches(6, 5)
-    plt.bar(top5,top5_scores,color='teal', edgecolor='black')
+
+    sorted_win = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
+    
+    top5 = list()
+    top5_scores = list()
+    
+    for i in range(0, min(5, len(list(sorted_win.keys())))):
+        player_name = list(sorted_win.keys())[i]
+        top5.append(player_name)
+        top5_scores.append(win_dict[player_name])
+
+    fig1 = plt.figure(figsize=(6, 5), dpi=100)
+    plt.bar(top5, top5_scores, color='teal', edgecolor='black')
     plt.title('Top 5 Players', fontsize=14)
     plt.xlabel('Players')
     plt.ylabel('Wins')
+    plt.tight_layout()
     plt.savefig("Top_5.png")
-    plt.close()
-    plays = game_dict.values()
-    labels = game_dict.keys()
-    fig2 = plt.figure(figsize=(6, 5), dpi=150)
-    fig2.set_size_inches(6, 5)
-    plt.pie(plays, labels=labels, autopct='%1.1f%%', startangle=140)
-    plt.title("Most Played Games")
-    plt.savefig("Games.png")
-    plt.close()
+    plt.close(fig1)
 
+    if game_dict:
+        plays = list(game_dict.values())
+        labels = list(game_dict.keys())
 
+        fig2 = plt.figure(figsize=(6, 5), dpi=100)
+        plt.pie(plays, labels=labels, autopct='%1.1f%%', startangle=140)
+        plt.title("Most Played Games", fontsize=14)
+        plt.tight_layout()
+        plt.savefig("Games.png")
+        plt.close(fig2)
             
 
 running=True
