@@ -76,6 +76,7 @@ def load_and_scale(name, size):
     img=pygame.image.load(path).convert_alpha()
     return pygame.transform.scale(img, size)
 
+
 pac_img=load_and_scale("pac.png", GHOST_SIZE)
 
 ghost_imgs = [
@@ -102,17 +103,19 @@ post_names=["post.png", "post1.png", "post2.png", "post3.png", "post4.png"]
 leaderboard_bgs=[]
 leaderboard_names=["leaderboard.png", "l_1.png", "l_2.png", "l_3.png", "l_4.png", "l_5.png", "l_6.png"]
 
-for name in menu_names:
-    path=os.path.join(ASSETS_DIR, name)
-    menu_bgs.append(pygame.image.load(path).convert())
+icons=[]
+icon_names=["ttt.png", "c4.png", "o.png", "bs.png", "p.png"]
 
-for name in post_names:
-    path=os.path.join(ASSETS_DIR, name)
-    post_bgs.append(pygame.image.load(path).convert())
+def load_images(a, b):
+    for name in a:
+        path=os.path.join(ASSETS_DIR, name)
+        b.append(pygame.image.load(path).convert())
 
-for name in leaderboard_names:
-    path=os.path.join(ASSETS_DIR, name)
-    leaderboard_bgs.append(pygame.image.load(path).convert())
+load_images(menu_names, menu_bgs)
+load_images(post_names, post_bgs)
+load_images(leaderboard_names, leaderboard_bgs)
+load_images(icon_names, icons)
+
     
 games_list=["", "TIC-TAC-TOE", "CONNECT-4", "OTHELLO", "BATTLESHIP", "PONG"]
 
@@ -143,6 +146,13 @@ leaderboard_rects = [
     pygame.Rect(332, 663, 260, 60),
 ]
 
+icon_rects =[
+    pygame.Rect(150, 290, 140, 140), 
+    pygame.Rect(387, 290, 140, 140), 
+    pygame.Rect(621, 290, 140, 140), 
+    pygame.Rect(276, 490, 140, 140), 
+    pygame.Rect(512, 490, 140, 140)
+]
 
 
 #back rectangle
@@ -434,6 +444,10 @@ if __name__ == "__main__":
         elif state=="menu":
             hover=get_hover_menu()
             screen.blit(menu_bgs[hover], (0, 0))
+            for i, rect in enumerate(icon_rects):
+                if i < len(icons):
+                    img = pygame.transform.scale(icons[i], (rect.width, rect.height))
+                    screen.blit(img, rect.topleft)
             
             #random ghosts crossing the menu
             if not crossing:
