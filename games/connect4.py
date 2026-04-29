@@ -24,6 +24,19 @@ FPS.tick(60)
 end_time=None
 
 class Connect(games_class):
+    def __init__(self, player1, player2, board=...):
+        super().__init__(player1, player2, board)
+        BASE_PATH=os.path.dirname(__file__)
+        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
+
+        self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
+        self.font_big=pygame.font.Font(self.font_path, 50)
+        self.font_medium=pygame.font.Font(self.font_path, 26)
+        self.font_small=pygame.font.Font(self.font_path, 18)
+        self.font_name=pygame.font.Font(self.font_path, 14)
+
+        self.bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "connect4_bg.png")).convert()
+
     def occ(self,x,y):
         if (self.board[x,y] == 0 ):
             return False
@@ -72,17 +85,8 @@ class Connect(games_class):
             return self.active
         return 0
     def show(self,screen, mouse_pos):
-        BASE_PATH=os.path.dirname(__file__)
-        ASSETS_DIR=os.path.join(BASE_PATH, '../assets')
-
-        self.font_path=os.path.join(ASSETS_DIR, "PressStart2P-Regular.ttf")
-        self.font_big=pygame.font.Font(self.font_path, 50)
-        self.font_medium=pygame.font.Font(self.font_path, 26)
-        self.font_small=pygame.font.Font(self.font_path, 18)
-        self.font_name=pygame.font.Font(self.font_path, 14)
-
-        bg_main=pygame.image.load(os.path.join(ASSETS_DIR, "connect4_bg.png")).convert()
-        screen.blit(bg_main, (0, 0))
+        
+        screen.blit(self.bg_main, (0, 0))
 
         p1_label=self.font_name.render("PLAYER 1", True, col1)
         p1_val=self.font_name.render(f"{self.player1}", True, col1)
@@ -173,7 +177,7 @@ class Connect(games_class):
                 pygame.draw.rect(display, win , rect.inflate(40, 40), 5)
                 display.blit(text, rect)
                 if not game_on and time.time()-end_time>2.5:
-                        return self.winner
+                    return self.winner
             pygame.display.update()
 # play = Connect(1,2)
 # play.execution()
