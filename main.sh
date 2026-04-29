@@ -31,6 +31,7 @@ authenticate_user(){
                 authenticated=true
                 echo "$username"
             else
+                #if incorrect, prompt for the username again (could've entered the wrong username)
                 echo "Incorrect password. Please try again." >&2
             fi
 
