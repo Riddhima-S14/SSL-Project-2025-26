@@ -13,12 +13,14 @@ cat << "EOF"
  |_|\___|\__,_|\__,_|\___|_|  |_.__/ \___/ \__,_|_|  \__,_|
 EOF
 
+#check what games have histories
 games=$(cut -d ',' -f 3 history.csv | tr -d '\r' | sort -u)
 
+#order them with the last played game first
 ordered_games="$game_input $(echo "$games" | grep -vxF "$game_input")"
 for game in $ordered_games; do
 
-    # 2. Centered Game Header
+    #centered game header
     total_width=66
     len=${#game}
     padding=$(( (total_width - len) / 2 ))
@@ -26,11 +28,15 @@ for game in $ordered_games; do
     right_side=$(printf '%.0s=' $(seq 1 $((total_width - len - padding))))
     echo "${left_side}${game}${right_side}"
 
-    # 3. Table Header
+    #table header
     printf "| %-22s | %-8s | %-8s | %-14s |\n" "PLAYER" "WIN" "LOSS" "WIN/LOSS"
     echo "------------------------------------------------------------------"
 
-    # 4. Data Processing
+    #extract all players (both winners and losers) for the current game
+    #use awk to filter rows where game name matches ($3 == g)
+    #remove any hidden carriage returns (\r) from the game field
+    #print winners (column 1) and losers (column 2) into a temp file
+    #sort and remove duplicates to get a unique list
     touch temp.txt players.txt final_data.txt
     awk -F',' -v g="$game" '{sub(/\r$/, "", $3)} $3 == g {print $1}' history.csv > temp.txt
     awk -F',' -v g="$game" '{sub(/\r$/, "", $3)} $3 == g {print $2}' history.csv >> temp.txt
@@ -38,23 +44,29 @@ for game in $ordered_games; do
 
     > final_data.txt
 
+    
     while read -r p; do
+        #skip empty lines (just in case)
         [ -z "$p" ] && continue
+        #count wins
         w=$(awk -F',' -v g="$game" -v p="$p" '{sub(/\r$/, "", $3)} $3==g && $1==p' history.csv | wc -l)
+        #count losses
         l=$(awk -F',' -v g="$game" -v p="$p" '{sub(/\r$/, "", $3)} $3==g && $2==p' history.csv | wc -l)
 
         if [[ $l -eq 0 ]]; then
-            ratio_num="999.00"
+            #undefeated should be the highest
+            ratio_num="9999.00"
             ratio_disp="UNDEFEATED"
         else
             ratio_num=$(awk "BEGIN { printf \"%.2f\", $w / $l }")
             ratio_disp=$ratio_num
         fi
 
+        #store player stats: name, wins, losses, numeric ratio, display ratio
         echo "$p $w $l $ratio_num $ratio_disp" >> final_data.txt
     done < players.txt
 
-    # 5. Sorting Logic
+    #sorting logic
     if [[ "$sort_option" == "1" ]]; then
         sorted_data=$(sort -k2,2nr -k1,1 final_data.txt)
     elif [[ "$sort_option" == "2" ]]; then
@@ -65,7 +77,7 @@ for game in $ordered_games; do
         sorted_data=$(cat final_data.txt)
     fi
 
-    # 6. Final Print
+    #final print
     while read -r p w l r_num r_disp; do
         printf "| %-22s | %-8s | %-8s | %-14s |\n" "$p" "$w" "$l" "$r_disp"
     done <<< "$sorted_data"
@@ -73,7 +85,7 @@ for game in $ordered_games; do
     echo "=================================================================="
     echo
 
-    # Cleanup
+    #cleanup
     rm temp.txt players.txt final_data.txt 2>/dev/null
 
 done
