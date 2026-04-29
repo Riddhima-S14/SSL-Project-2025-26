@@ -54,6 +54,10 @@ bash main.sh
 - pygame
 - numpy
 - matplotlib
+- os
+- time
+- datetime
+- sys
 
 ## System Design
 
