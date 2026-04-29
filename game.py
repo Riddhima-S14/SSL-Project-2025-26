@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 
 
 class games_class:
-    def __init__(self, player1, player2, board=np.zeros(5)):
+    def _init_(self, player1, player2, board=np.zeros(5)):
         self.player1 = player1
         self.player2 = player2
         self.active = 1
@@ -57,7 +57,7 @@ else:
     player2="r"
 
 #setting up paths
-BASE_PATH=os.path.dirname(__file__)
+BASE_PATH=os.path.dirname(_file_)
 ASSETS_DIR=os.path.join(BASE_PATH, 'assets')
 
 
@@ -330,7 +330,7 @@ def plots(file_name):
             
 
 running=True
-if __name__ == "__main__":
+if _name_ == "_main_":
     history_path = os.path.join(BASE_PATH, "history.csv")
     if os.path.exists(history_path):
         plots(history_path)
