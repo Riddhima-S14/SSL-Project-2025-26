@@ -245,7 +245,7 @@ def launch_game(choice):
 #write into history.csv  
 def history(w,l,game):
     with open(os.path.join(BASE_PATH, "history.csv"), 'a', newline="\n") as f:
-        f.write(w+','+l+','+game+','+datetime.datetime.today()+'\n')
+        f.write(w + ',' + l + ',' + game + ',' + str(datetime.datetime.today()) + '\n')
 
 #update history
 def update(winner,game):
@@ -293,10 +293,10 @@ def plots(file_name):
             dict_update(loser, lose_dict)
             dict_update(game, game_dict)
 #for players with 0 wins or 0 losses
-            if line[1] not in win_dict:
-                win_dict[line[1]] = 0
-            if line[0] not in lose_dict:
-                lose_dict[line[0]] = 0
+            if loser not in win_dict:
+                win_dict[loser] = 0
+            if winner not in lose_dict:
+                lose_dict[winner] = 0
 #sorting dictionnary for top 5
     sorted_win = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
     
@@ -330,7 +330,7 @@ def plots(file_name):
             
 
 running=True
-if __name__ == "_main_":
+if __name__ == "__main__":
     history_path = os.path.join(BASE_PATH, "history.csv")
     if os.path.exists(history_path):
         plots(history_path)
