@@ -1,107 +1,95 @@
-# SSL Project 2026 - Mini Game Hub
-Samhitha Poladi (25B1088) and Riddhima Singh (25B1068)
+# Mini Game Hub
 
-Mini Game Hub is a multi-user game platform that combines Bash scripting and Python (Pygame) to create an interactive gaming experience.
-The system begins with user authentication in Bash, after which two players can select and play different board games through a graphical interface. The games include tic-tac-toe, othello, connect 4 and battleship
-Game results are stored and used to generate a leaderboard and basic analytics.
+A multi-user game hub built using Bash and Python (Pygame), featuring multiple games, authentication, leaderboard tracking, and statistical visualisation.
 
-**Features**
+## Features
+- User authentication using Bash (main.sh) with passwords hashed using SHA-256
+- Multiple 2-player games (Tic-Tac-Toe, Connect-4, Othello, Battleship, Pong)
+- Pygame-based graphical interface
+- Persistent leaderboard using history.csv
+- Sorting leaderboard by wins, losses, or win/loss ratio
+- Matplotlib visualisations:
+  - Top 5 players
+  - Most played games
 
-* User authentication with password handling using Bash scripts
-* Multiple two-player board games (Tic-Tac-Toe, Connect Four, Othello, Battleship)
-* Graphical interface using Pygame
-* Use of NumPy for board representation and efficient win checking
-* Storage of users and match history
-* Leaderboard generation showing wins, losses, and win/loss ratio
-* Basic data visualisation using MatPlotLib (e.g., top players, most played games)
-* Modular code structure using classes and separate files
+## Project Structure
 
-**How to Run**
+ 
+├── main.sh  
+├── game.py  
+├── leaderboard.sh  
+├── games/  
+│   ├── tictactoe.py  
+│   ├── connect4.py  
+│   ├── othello.py  
+│   ├── battleship.py  
+│   ├── pong.py  
+├── assets/  
+├── history.csv  
+└── users.tsv  
 
-```bash id="r0x5m9"
+---
+
+## How to Run
+
+1. Make scripts executable:
+```bash
+chmod +x main.sh leaderboard.sh
+```
+
+2. Run the program:
+```bash
 bash main.sh
 ```
 
-**Project Structure**
+3. Enter usernames and passwords when prompted.
 
-* `main.sh` → Handles login/registration and launches the game engine
-* `game.py` → Controls game menu and gameplay
+4. Select a game from the menu and play.
+
+5. Take a look at the leaderboard and other stats.
+
+## Requirements
+
+- Python 3
+- pygame
+- numpy
+- matplotlib
+
+## System Design
+
+* `main.sh` → Handles secure login/registration using SHA and launches the game engine
+* `game.py` → Controls the basic game class, the game menu and gameplay
 * `leaderboard.sh` → Processes game history and displays leaderboard
 * `games/` → Contains implementations of individual games
 * `users.tsv` → Stores user credentials
-* `history.csv` → Stores game results (winner, loser, date, game)
+* `history.csv` → Stores game results (winner, loser, game, date)
 
-**Technologies Used**
+## Leaderboard
 
-* Bash (authentication and leaderboard processing)
-* Python (core logic and structure)
-* Pygame (GUI and rendering)
-* NumPy (board operations)
-* Matplotlib (data visualisation)
+- Reads data from history.csv
+- Calculates wins, losses, and win/loss ratio per player
+- Supports sorting by:
+  - Wins
+  - Losses
+  - Ratio
+
+## Statistics
+
+After each game:
+- Bar chart of top 5 players by wins
+- Pie chart of most played games
+
+Charts are generated using matplotlib and displayed in the GUI.
+
+## Notes
+
+- Passwords are hashed using SHA-256
+- No absolute paths are used; project runs on any system
+- Works on both Linux and Git Bash (Windows)
+
+## Authors
+
+- Samhitha Poladi (25B1088)
+- Riddhima Singh (25B1068)
 
 
-
-
-## Weekly Contribution Plan (6 Weeks)
-
-### Week 1
-
-* Samhitha:
-
-  * Set up project structure and repository
-  * Begin implementing authentication in `main.sh`
-    
-* Riddhima:
-
-  * Set up Python environment and dependencies
-  * Create base game class and initialize Pygame window
-
-### Week 2
-
-* Samhitha:
-
-  * Complete authentication system (login, registration, user storage in `users.tsv`)
-    
-* Riddhima:
-
-  * Implement board representation using NumPy
-  * Set up reusable rendering framework in Pygame
-
-### Week 3
-
-* Samhitha:
-
-  * Implement Tic-Tac-Toe logic (including win conditions)
-    
-* Riddhima:
-  * Implement Tic-Tac-Toe GUI and interactions
-
-### Week 4
-
-* Samhitha:
-  * Implement Connect Four GUI and improve visuals
-      
-* Riddhima:
-  * Implement Connect Four logic (gravity, win checking)
-
-### Week 5
-
-* Samhitha:
-  * Implement Battleship logic (grid setup, ship placement, hit/miss detection)
-  * Integrate all games into a unified menu system
-* Riddhima:
-  * Implement Othello logic (valid moves, disc flipping, turn handling)
-
-### Week 6
-
-* Samhitha:
-
-  * Implement result recording (winner, loser, date, game)
-  
-  * Add basic visualisations using Matplotlib
-    
-* Riddhima:
-  
-  * Assist in testing and debugging
-  * Implement leaderboard display using `leaderboard.sh`
-  * Final cleanup, documentation, and integration
