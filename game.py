@@ -3,6 +3,8 @@ import time
 import pygame
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class games_class:
@@ -204,6 +206,55 @@ def update(winner,game):
         loser = player1 if (winner == player2) else player2
         history(winner,loser,game)
 
+def dict_update(value,d):
+    if value not in d.keys():
+        d[value] = 1
+    else:
+        d[value] += 1 
+
+def plots(file_name):
+    win_dict = dict()
+    lose_dict = dict()
+    game_dict = dict()
+    with open(file_name,'r') as file:
+        lines=file.readlines()
+        for line_1 in lines:
+            if line_1 == '':
+                continue
+            line = line_1.split(',')
+            dict_update(line[0],win_dict)
+            dict_update(line[1],lose_dict)
+            dict_update(line[2],game_dict)
+            if line[1] not in win_dict.keys():
+                win_dict[line[1]] = 0
+            if line[0] not in lose_dict.keys():
+                lose_dict[line[0]] = 0
+        sorted_win = dict(sorted(win_dict.items(), key=lambda item: item[1], reverse=True))
+        top5 = list()
+        top5_scores = list()
+        for i in range (0,min(5, len(list(sorted_win.keys())))):
+            top5.append(list(sorted_win.keys())[i])
+            top5_scores.append(win_dict[top5[i]])         
+    fig1 = plt.figure(figsize=(6, 5), dpi=150)
+    fig1.set_size_inches(6, 5)
+    plt.bar(top5,top5_scores,color='teal', edgecolor='black')
+    plt.title('Top 5 Players', fontsize=14)
+    plt.xlabel('Players')
+    plt.ylabel('Wins')
+    plt.savefig("Top_5.png")
+    plt.close()
+    plays = game_dict.values()
+    labels = game_dict.keys()
+    fig2 = plt.figure(figsize=(6, 5), dpi=150)
+    fig2.set_size_inches(6, 5)
+    plt.pie(plays, labels=labels, autopct='%1.1f%%', startangle=140)
+    plt.title("Most Played Games")
+    plt.savefig("Games.png")
+    plt.close()
+
+
+            
+
 running=True
 if __name__ == "__main__":
     while running:
@@ -235,8 +286,10 @@ if __name__ == "__main__":
                     hover=get_hover_menu()
                     if hover!=0:
                         winner=launch_game(hover)
+                        
 
                         update(winner,games_list[hover])
+                        plots("history.csv")
                         screen = pygame.display.set_mode((WIDTH, HEIGHT))
                         pygame.display.set_caption("Game Hub")
                         if winner==0:
