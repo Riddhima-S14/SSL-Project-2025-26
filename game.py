@@ -228,7 +228,7 @@ def launch_game(choice):
         return Pong(player1, player2).execution()
     
 def history(w,l,game):
-    with open('history.csv','a') as f:
+    with open(os.path.join(BASE_PATH, "history.csv"), 'a', newline="\n") as f:
         f.write(w+','+l+','+game+'\n')
 
 
@@ -297,7 +297,7 @@ def plots(file_name):
     plt.xlabel('Players')
     plt.ylabel('Wins')
     plt.tight_layout()
-    plt.savefig("Top_5.png")
+    plt.savefig(os.path.join(BASE_PATH, "Top_5.png"))
     plt.close(fig1)
 
     if game_dict:
@@ -308,12 +308,15 @@ def plots(file_name):
         plt.pie(plays, labels=labels, autopct='%1.1f%%', startangle=140)
         plt.title("Most Played Games", fontsize=14)
         plt.tight_layout()
-        plt.savefig("Games.png")
+        plt.savefig(os.path.join(BASE_PATH, "Games.png"))
         plt.close(fig2)
             
 
 running=True
 if __name__ == "__main__":
+    history_path = os.path.join(BASE_PATH, "history.csv")
+    if os.path.exists(history_path):
+        plots(history_path)
     while running:
         mouse_pos=pygame.mouse.get_pos()
         
@@ -345,7 +348,7 @@ if __name__ == "__main__":
                         winner=launch_game(hover)
                         current_game=games_list[hover]
                         update(winner,games_list[hover])
-                        plots("history.csv")
+                        plots(os.path.join(BASE_PATH, "history.csv"))
                         screen = pygame.display.set_mode((WIDTH, HEIGHT))
                         pygame.display.set_caption("Game Hub")
                         if winner==0:
@@ -547,6 +550,22 @@ if __name__ == "__main__":
 
             screen.blit(bg_stats, (0, 0))
 
+            top5_path = os.path.join(BASE_PATH, "Top_5.png")
+            games_path = os.path.join(BASE_PATH, "Games.png")
+
+            if os.path.exists(top5_path) and os.path.exists(games_path):
+                top5_img = pygame.image.load(top5_path)
+                games_img = pygame.image.load(games_path)
+        
+                top5_img = pygame.transform.scale(top5_img, (400, 330))
+                games_img = pygame.transform.scale(games_img, (400, 330))
+        
+                screen.blit(top5_img, (40, 150))
+                screen.blit(games_img, (460, 150))
+            else:
+                msg = font_small.render("NO STATS AVAILABLE YET", True, WHITE)
+                screen.blit(msg, msg.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            
             exit_h = stats_exit_rect.collidepoint(mouse_pos)
             exit_color = YELLOW if exit_h else WHITE
             exit_txt = font_small.render("EXIT", True, exit_color)
