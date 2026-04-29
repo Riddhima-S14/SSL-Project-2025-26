@@ -317,12 +317,7 @@ if __name__ == "__main__":
                     hover=get_hover_menu()
                     if hover!=0:
                         winner=launch_game(hover)
-<<<<<<< HEAD
-                        
-
-=======
                         current_game=games_list[hover]
->>>>>>> 208e54f6fc18d49da967286cade49bd26592c333
                         update(winner,games_list[hover])
                         plots("history.csv")
                         screen = pygame.display.set_mode((WIDTH, HEIGHT))
