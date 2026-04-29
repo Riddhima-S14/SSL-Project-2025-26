@@ -28,7 +28,7 @@ class Pong(games_class):
         #ball knowledge
         BALL_SIZE=20
 
-        #paddle
+        #paddles
         PADDLE_WIDTH, PADDLE_HEIGHT=20, 120
         self.paddle_speed=8
         self.paddle1=pygame.Rect(self.BOARD_X+20, self.BOARD_Y+self.BOARD_HEIGHT//2-PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
@@ -78,6 +78,7 @@ class Pong(games_class):
     def draw(self):
         self.display.blit(self.bg, (0, 0))
 
+        #player labels
         p1_label=self.font_name.render("PLAYER 1", True, WHITE)
         p1_val=self.font_name.render(self.player1, True, WHITE)
         p2_label=self.font_name.render("PLAYER 2", True, WHITE)
@@ -131,8 +132,10 @@ class Pong(games_class):
                     sys.exit()
                 elif event.type==pygame.MOUSEBUTTONDOWN:
                     mouse_pos=pygame.mouse.get_pos()
+                    #back button
                     if self.back_rect.collidepoint(mouse_pos):
                         return 0
+                    #reset button
                     if self.reset_rect.collidepoint(mouse_pos):
                         #reset scores, paddles, ball
                         self.score1=0
@@ -148,7 +151,7 @@ class Pong(games_class):
 
             if game_on and not self.winner:
                 keys=pygame.key.get_pressed()
-                 #player 1 controls
+                #player 1 controls
                 if keys[K_w] and self.paddle1.top>self.BOARD_Y:
                     self.paddle1.y-=self.paddle_speed
                 if keys[K_s] and self.paddle1.bottom<self.BOARD_Y+self.BOARD_HEIGHT:
